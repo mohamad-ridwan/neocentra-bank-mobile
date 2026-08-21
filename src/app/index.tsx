@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -57,7 +52,10 @@ export default function EntryScreen() {
   // ----------------------------------------------------
   if (isAuthenticated && user) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-50 dark:bg-[#0B0F19]" edges={["top", "left", "right"]}>
+      <SafeAreaView
+        className="flex-1 bg-slate-50 dark:bg-[#0B0F19]"
+        edges={["top", "left", "right"]}
+      >
         <ScrollView
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
@@ -107,14 +105,18 @@ export default function EntryScreen() {
               />
             </View>
 
-            <Text className="text-xs text-slate-400 mb-1">Total Saldo Efektif</Text>
+            <Text className="text-xs text-slate-400 mb-1">
+              Total Saldo Efektif
+            </Text>
             <Text className="text-3xl font-extrabold text-white mb-4">
               {formatCurrencyIDR(user.balance || 45750000)}
             </Text>
 
             <View className="flex-row items-center justify-between pt-3 border-t border-slate-700/60">
               <View>
-                <Text className="text-[11px] text-slate-400">Nomor Rekening</Text>
+                <Text className="text-[11px] text-slate-400">
+                  Nomor Rekening
+                </Text>
                 <Text className="text-sm font-mono font-bold text-slate-100">
                   {user.accountNumber || "8809 3421 9870"}
                 </Text>
@@ -125,13 +127,21 @@ export default function EntryScreen() {
               >
                 {copied ? (
                   <>
-                    <CheckCircle2 size={14} color="#34D399" className="mr-1.5" />
-                    <Text className="text-xs text-emerald-300 font-medium">Disalin</Text>
+                    <CheckCircle2
+                      size={14}
+                      color="#34D399"
+                      className="mr-1.5"
+                    />
+                    <Text className="text-xs text-emerald-300 font-medium">
+                      Disalin
+                    </Text>
                   </>
                 ) : (
                   <>
                     <Copy size={14} color="#93C5FD" className="mr-1.5" />
-                    <Text className="text-xs text-blue-200 font-medium">Salin</Text>
+                    <Text className="text-xs text-blue-200 font-medium">
+                      Salin
+                    </Text>
                   </>
                 )}
               </Pressable>
@@ -230,9 +240,16 @@ export default function EntryScreen() {
   // 2. Unauthenticated Welcome / Landing Screen
   // ----------------------------------------------------
   return (
-    <SafeAreaView className="flex-1 bg-[#0A2540]" edges={["top", "left", "right"]}>
+    <SafeAreaView
+      className="flex-1 bg-[#0A2540]"
+      edges={["top", "left", "right"]}
+    >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "space-between", paddingBottom: 30 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "space-between",
+          paddingBottom: 30,
+        }}
         showsVerticalScrollIndicator={false}
         className="flex-1 px-6"
       >
@@ -253,7 +270,8 @@ export default function EntryScreen() {
             Perbankan Digital{"\n"}Generasi Baru
           </Heading>
           <Text className="text-center text-slate-300 text-sm max-w-[280px]">
-            Solusi finansial cerdas, cepat, dan aman dengan standar enkripsi militer.
+            Solusi finansial cerdas, cepat, dan aman dengan standar enkripsi
+            militer.
           </Text>
         </View>
 
@@ -268,7 +286,8 @@ export default function EntryScreen() {
                 Keamanan Berlapis (KMS + FLE)
               </Text>
               <Text className="text-xs text-slate-400">
-                Data sensitif dan transaksi Anda terenkripsi Google Tink AES-256.
+                Data sensitif dan transaksi Anda terenkripsi Google Tink
+                AES-256.
               </Text>
             </View>
           </View>

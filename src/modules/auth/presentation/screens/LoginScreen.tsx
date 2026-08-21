@@ -36,7 +36,7 @@ export function LoginScreen() {
         accountNumber: "8809 3421 9870",
         createdAt: new Date().toISOString(),
       },
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_biometric_token"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_biometric_token",
     );
     router.replace("/");
   };
@@ -61,7 +61,9 @@ export function LoginScreen() {
         <LoginForm
           onSuccess={handleLoginSuccess}
           onForgotPassword={() => {
-            alert("Silakan hubungi Customer Service Neocentra Bank untuk pemulihan akun.");
+            alert(
+              "Silakan hubungi Customer Service Neocentra Bank untuk pemulihan akun.",
+            );
           }}
         />
 

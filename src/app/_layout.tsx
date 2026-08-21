@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GluestackProvider } from "@/shared/components/ui";
+import "@/shared/styles/global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -18,7 +19,7 @@ export default function RootLayout() {
             staleTime: 1000 * 60 * 5, // 5 minutes
           },
         },
-      })
+      }),
   );
 
   return (
