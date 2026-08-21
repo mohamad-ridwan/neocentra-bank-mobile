@@ -1,6 +1,23 @@
-import { useColorScheme as useRNColorScheme } from "react-native";
+import { useColorScheme as useNativeWindColorScheme } from "nativewind";
+import { useThemeStore } from "@/shared/stores/useThemeStore";
 
 export function useColorScheme() {
-  const scheme = useRNColorScheme();
-  return scheme ?? "light";
+  const { colorScheme, setColorScheme, toggleColorScheme } =
+    useNativeWindColorScheme();
+  const themeMode = useThemeStore((state) => state.themeMode);
+  const setThemeMode = useThemeStore((state) => state.setThemeMode);
+  const toggleTheme = useThemeStore((state) => state.toggleTheme);
+
+  const resolvedScheme = colorScheme ?? "light";
+  const isDark = resolvedScheme === "dark";
+
+  return {
+    colorScheme: resolvedScheme,
+    themeMode,
+    isDark,
+    setColorScheme,
+    setThemeMode,
+    toggleTheme,
+    toggleColorScheme,
+  };
 }

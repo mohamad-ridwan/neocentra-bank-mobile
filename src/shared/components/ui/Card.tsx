@@ -18,13 +18,13 @@ export function Card({
 }: CardProps) {
   const variantStyles: Record<CardVariant, string> = {
     default:
-      "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm",
+      "bg-white dark:bg-[#131B2E] border border-slate-200/80 dark:border-slate-800 shadow-sm shadow-slate-200/50 dark:shadow-none",
     elevated:
-      "bg-white dark:bg-slate-900 shadow-md shadow-slate-900/5 dark:shadow-black/40 border border-slate-100 dark:border-slate-800",
+      "bg-white dark:bg-[#131B2E] shadow-md shadow-slate-300/40 dark:shadow-black/50 border border-slate-200/60 dark:border-slate-800",
     outlined:
       "bg-transparent border border-slate-200 dark:border-slate-800",
     glass:
-      "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-800/40 shadow-lg",
+      "bg-white/90 dark:bg-[#131B2E]/90 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/50 shadow-lg",
   };
 
   return (

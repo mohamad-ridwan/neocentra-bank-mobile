@@ -56,14 +56,14 @@ export function Button({
   };
 
   const variantStyles: Record<ButtonVariant, string> = {
-    primary: "bg-[#0066FF] shadow-sm shadow-blue-500/20 active:bg-blue-700",
+    primary: "bg-[#0066FF] shadow-sm active:bg-blue-700",
     secondary:
-      "bg-slate-100 dark:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700",
+      "bg-slate-100 dark:bg-slate-800/90 active:bg-slate-200 dark:active:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60",
     outline:
-      "border border-slate-300 dark:border-slate-700 bg-transparent active:bg-slate-50 dark:active:bg-slate-900",
-    ghost: "bg-transparent active:bg-slate-100 dark:active:bg-slate-800",
-    danger: "bg-rose-600 active:bg-rose-700 shadow-sm shadow-rose-500/20",
-    emerald: "bg-emerald-600 active:bg-emerald-700 shadow-sm shadow-emerald-500/20",
+      "border border-slate-300 dark:border-slate-700 bg-transparent active:bg-slate-100/70 dark:active:bg-slate-800/50",
+    ghost: "bg-transparent active:bg-slate-100 dark:active:bg-slate-800/80",
+    danger: "bg-rose-600 active:bg-rose-700 shadow-sm",
+    emerald: "bg-emerald-600 active:bg-emerald-700 shadow-sm",
   };
 
   const textVariantStyles: Record<ButtonVariant, string> = {

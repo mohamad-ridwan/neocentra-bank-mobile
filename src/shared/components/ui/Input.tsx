@@ -9,6 +9,7 @@ import {
 import { Eye, EyeOff } from "lucide-react-native";
 import clsx from "clsx";
 import { Label } from "./Typography";
+import { useColorScheme } from "@/shared/hooks/useColorScheme";
 
 export interface InputProps extends TextInputProps {
   label?: string;
@@ -33,6 +34,7 @@ export function Input({
   secureTextEntry,
   ...props
 }: InputProps) {
+  const { isDark } = useColorScheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -44,22 +46,22 @@ export function Input({
 
       <View
         className={clsx(
-          "flex-row items-center w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 transition-all",
+          "flex-row items-center w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-[#131B2E] transition-all",
           isFocused
-            ? "border-[#0066FF] shadow-sm shadow-blue-500/10"
+            ? "border-[#0066FF] shadow-sm shadow-blue-500/10 dark:border-[#0066FF]"
             : error
-            ? "border-rose-500 bg-rose-50/20 dark:bg-rose-950/10"
+            ? "border-rose-500 bg-rose-50/30 dark:bg-rose-950/20"
             : "border-slate-200 dark:border-slate-800"
         )}
       >
-        {leftIcon && <View className="mr-2.5 text-slate-400">{leftIcon}</View>}
+        {leftIcon && <View className="mr-2.5">{leftIcon}</View>}
 
         <TextInput
           className={clsx(
             "flex-1 text-base text-slate-900 dark:text-white py-1",
             inputClassName
           )}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
           secureTextEntry={isSecure}
           onFocus={(e) => {
             setIsFocused(true);
@@ -79,9 +81,9 @@ export function Input({
             hitSlop={8}
           >
             {showPassword ? (
-              <EyeOff size={18} color="#64748B" />
+              <EyeOff size={18} color={isDark ? "#94A3B8" : "#64748B"} />
             ) : (
-              <Eye size={18} color="#64748B" />
+              <Eye size={18} color={isDark ? "#94A3B8" : "#64748B"} />
             )}
           </Pressable>
         ) : (

@@ -25,7 +25,7 @@ export function Subheading({ className, children, ...props }: TypographyProps) {
   return (
     <RNText
       className={clsx(
-        "text-lg font-semibold text-slate-800 dark:text-slate-200",
+        "text-lg font-semibold text-slate-800 dark:text-slate-100",
         className
       )}
       {...props}

@@ -4,8 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
   Bell,
   CheckCircle2,
   Copy,
@@ -14,13 +12,13 @@ import {
   Landmark,
   Lock,
   LogOut,
-  PlusCircle,
   QrCode,
   Send,
+  Settings,
   ShieldCheck,
   Smartphone,
   Sparkles,
-  Wallet,
+  Zap,
 } from "lucide-react-native";
 import {
   Badge,
@@ -31,10 +29,12 @@ import {
 } from "@/shared/components/ui";
 import { formatCurrencyIDR, maskNIK } from "@/shared/utils/formatters";
 import { useAuthStore } from "@/modules/auth/application/store/useAuthStore";
+import { useColorScheme } from "@/shared/hooks/useColorScheme";
 
 export default function EntryScreen() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { isDark } = useColorScheme();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -64,13 +64,15 @@ export default function EntryScreen() {
           {/* Top Bar / Profile Header */}
           <View className="flex-row items-center justify-between pt-4 pb-5">
             <View className="flex-row items-center">
-              <View className="w-12 h-12 rounded-full bg-[#0066FF] items-center justify-center shadow-md shadow-blue-500/20 mr-3">
+              <View className="w-12 h-12 rounded-full bg-[#0066FF] items-center justify-center shadow-md mr-3">
                 <Text className="text-white font-bold text-lg">
                   {user.fullName.charAt(0)}
                 </Text>
               </View>
               <View>
-                <Text className="text-xs text-slate-500">Selamat Datang,</Text>
+                <Text className="text-xs text-slate-500 dark:text-slate-400">
+                  Selamat Datang,
+                </Text>
                 <Subheading className="text-base font-bold text-slate-900 dark:text-white">
                   {user.fullName}
                 </Subheading>
@@ -78,12 +80,23 @@ export default function EntryScreen() {
             </View>
 
             <View className="flex-row items-center gap-2">
-              <Pressable className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 items-center justify-center">
-                <Bell size={18} color="#64748B" />
+              <Pressable
+                onPress={() => router.push("/settings")}
+                className="w-10 h-10 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
+                hitSlop={8}
+              >
+                <Settings size={18} color={isDark ? "#94A3B8" : "#64748B"} />
+              </Pressable>
+              <Pressable
+                className="w-10 h-10 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
+                hitSlop={8}
+              >
+                <Bell size={18} color={isDark ? "#94A3B8" : "#64748B"} />
               </Pressable>
               <Pressable
                 onPress={logout}
-                className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 items-center justify-center"
+                className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 items-center justify-center shadow-sm active:opacity-70"
+                hitSlop={8}
               >
                 <LogOut size={18} color="#EF4444" />
               </Pressable>
@@ -91,7 +104,7 @@ export default function EntryScreen() {
           </View>
 
           {/* Account Balance Card */}
-          <Card className="w-full bg-[#0A2540] border border-blue-900/50 p-6 rounded-3xl mb-6 shadow-xl shadow-blue-950/40">
+          <Card className="w-full bg-[#0A2540] dark:bg-[#0E1B33] border border-blue-900/50 dark:border-blue-800/40 p-6 rounded-3xl mb-6 shadow-xl">
             <View className="flex-row justify-between items-center mb-3">
               <View className="flex-row items-center">
                 <Landmark size={18} color="#60A5FA" className="mr-2" />
@@ -105,25 +118,25 @@ export default function EntryScreen() {
               />
             </View>
 
-            <Text className="text-xs text-slate-400 mb-1">
+            <Text className="text-xs text-blue-200/80 mb-1">
               Total Saldo Efektif
             </Text>
             <Text className="text-3xl font-extrabold text-white mb-4">
               {formatCurrencyIDR(user.balance || 45750000)}
             </Text>
 
-            <View className="flex-row items-center justify-between pt-3 border-t border-slate-700/60">
+            <View className="flex-row items-center justify-between pt-3 border-t border-blue-900/60 dark:border-slate-800">
               <View>
-                <Text className="text-[11px] text-slate-400">
+                <Text className="text-[11px] text-blue-200/70">
                   Nomor Rekening
                 </Text>
-                <Text className="text-sm font-mono font-bold text-slate-100">
+                <Text className="text-sm font-mono font-bold text-white">
                   {user.accountNumber || "8809 3421 9870"}
                 </Text>
               </View>
               <Pressable
                 onPress={handleCopyAccount}
-                className="flex-row items-center py-1.5 px-3 rounded-lg bg-white/10 active:bg-white/20"
+                className="flex-row items-center py-2 px-3 rounded-lg bg-white/10 active:bg-white/20"
               >
                 {copied ? (
                   <>
@@ -201,25 +214,41 @@ export default function EntryScreen() {
 
             <View className="space-y-2">
               <View className="flex-row justify-between py-1">
-                <Text className="text-xs text-slate-500">NIK (Masked)</Text>
+                <Text className="text-xs text-slate-500 dark:text-slate-400">
+                  NIK (Masked)
+                </Text>
                 <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   {maskNIK(user.nik)}
                 </Text>
               </View>
               <View className="flex-row justify-between py-1">
-                <Text className="text-xs text-slate-500">Email</Text>
+                <Text className="text-xs text-slate-500 dark:text-slate-400">
+                  Email
+                </Text>
                 <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   {user.email}
                 </Text>
               </View>
               <View className="flex-row justify-between py-1">
-                <Text className="text-xs text-slate-500">Nomor HP</Text>
+                <Text className="text-xs text-slate-500 dark:text-slate-400">
+                  Nomor HP
+                </Text>
                 <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                   {user.phoneNumber}
                 </Text>
               </View>
             </View>
           </Card>
+
+          {/* Settings Shortcut Button */}
+          <Button
+            title="Buka Pengaturan & Tema"
+            variant="secondary"
+            size="md"
+            onPress={() => router.push("/settings")}
+            leftIcon={<Settings size={16} color="#0066FF" />}
+            className="w-full mb-3"
+          />
 
           {/* Logout Action */}
           <Button
@@ -241,7 +270,7 @@ export default function EntryScreen() {
   // ----------------------------------------------------
   return (
     <SafeAreaView
-      className="flex-1 bg-[#0A2540]"
+      className="flex-1 bg-slate-50 dark:bg-[#0B0F19]"
       edges={["top", "left", "right"]}
     >
       <ScrollView
@@ -253,72 +282,114 @@ export default function EntryScreen() {
         showsVerticalScrollIndicator={false}
         className="flex-1 px-6"
       >
+        {/* Top Header Bar with Settings Navigation */}
+        <View className="flex-row items-center justify-between pt-2 pb-2">
+          <View className="flex-row items-center">
+            {/* <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: "#10B981",
+                marginRight: 8,
+              }}
+            ></View> */}
+            <Text className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Neocentra Digital Bank
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={() => router.push("/settings")}
+            className="flex-row items-center px-3 py-2 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 shadow-sm active:opacity-70"
+            hitSlop={8}
+          >
+            <Settings
+              size={15}
+              color={isDark ? "#94A3B8" : "#64748B"}
+              className="mr-2"
+            />
+            <Text className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Pengaturan
+            </Text>
+          </Pressable>
+        </View>
+
         {/* Brand Banner Hero */}
-        <View className="items-center pt-8">
-          <View className="w-20 h-20 rounded-3xl bg-[#0066FF] items-center justify-center mb-4 shadow-2xl shadow-blue-500/50">
+        <View className="items-center pt-4">
+          <View className="w-20 h-20 rounded-3xl bg-[#0066FF] items-center justify-center mb-4 shadow-2xl">
             <Landmark size={40} color="#FFFFFF" />
           </View>
 
           <Badge
             label="NEOCENTRA BANK MOBILE"
             variant="info"
-            className="mb-3 bg-blue-900/60 border-blue-500/40"
-            textClassName="text-blue-300 tracking-widest text-[10px]"
+            className="mb-3"
+            textClassName="tracking-widest text-[10px]"
           />
 
-          <Heading className="text-center text-3xl font-extrabold text-white mb-2">
+          <Heading className="text-center text-3xl font-extrabold text-slate-900 dark:text-white mb-2">
             Perbankan Digital{"\n"}Generasi Baru
           </Heading>
-          <Text className="text-center text-slate-300 text-sm max-w-[280px]">
+          <Text className="text-center text-slate-600 dark:text-slate-400 text-sm max-w-[280px]">
             Solusi finansial cerdas, cepat, dan aman dengan standar enkripsi
             militer.
           </Text>
         </View>
 
         {/* Value Propositions */}
-        <View className="my-8 space-y-3">
-          <View className="flex-row items-center p-3.5 rounded-2xl bg-white/5 border border-white/10 mb-3">
-            <View className="w-10 h-10 rounded-xl bg-blue-500/20 items-center justify-center mr-3">
-              <ShieldCheck size={20} color="#60A5FA" />
+        <View className="my-6 space-y-3">
+          <Card
+            variant="default"
+            className="flex-row items-center p-4 rounded-2xl mb-3"
+          >
+            <View className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/30 items-center justify-center mr-3">
+              <ShieldCheck size={20} color="#0066FF" />
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-white">
+              <Text className="text-sm font-semibold text-slate-900 dark:text-white">
                 Keamanan Berlapis (KMS + FLE)
               </Text>
-              <Text className="text-xs text-slate-400">
+              <Text className="text-xs text-slate-500 dark:text-slate-400">
                 Data sensitif dan transaksi Anda terenkripsi Google Tink
                 AES-256.
               </Text>
             </View>
-          </View>
+          </Card>
 
-          <View className="flex-row items-center p-3.5 rounded-2xl bg-white/5 border border-white/10 mb-3">
-            <View className="w-10 h-10 rounded-xl bg-emerald-500/20 items-center justify-center mr-3">
-              <Sparkles size={20} color="#34D399" />
+          <Card
+            variant="default"
+            className="flex-row items-center p-4 rounded-2xl mb-3"
+          >
+            <View className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/30 items-center justify-center mr-3">
+              <Sparkles size={20} color="#10B981" />
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-white">
+              <Text className="text-sm font-semibold text-slate-900 dark:text-white">
                 Buka Rekening 100% Online
               </Text>
-              <Text className="text-xs text-slate-400">
+              <Text className="text-xs text-slate-500 dark:text-slate-400">
                 Cukup 3 menit verifikasi identitas e-KTP instan tanpa antre.
               </Text>
             </View>
-          </View>
+          </Card>
 
-          <View className="flex-row items-center p-3.5 rounded-2xl bg-white/5 border border-white/10">
-            <View className="w-10 h-10 rounded-xl bg-purple-500/20 items-center justify-center mr-3">
-              <ZapIcon />
+          <Card
+            variant="default"
+            className="flex-row items-center p-4 rounded-2xl"
+          >
+            <View className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/30 items-center justify-center mr-3">
+              <Zap size={20} color="#9333EA" />
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-white">
+              <Text className="text-sm font-semibold text-slate-900 dark:text-white">
                 Transfer & QRIS Real-Time
               </Text>
-              <Text className="text-xs text-slate-400">
+              <Text className="text-xs text-slate-500 dark:text-slate-400">
                 Bebas biaya admin transfer antar bank 24 jam nonstop.
               </Text>
             </View>
-          </View>
+          </Card>
         </View>
 
         {/* Action Buttons */}
@@ -328,34 +399,29 @@ export default function EntryScreen() {
             variant="primary"
             size="lg"
             onPress={() => router.push("/(auth)/login")}
-            className="w-full bg-[#0066FF] shadow-lg shadow-blue-500/40 mb-3"
+            className="w-full bg-[#0066FF] shadow-lg mb-3"
           />
 
           <Button
             title="Daftar Rekening Baru"
-            variant="outline"
+            variant="secondary"
             size="lg"
             onPress={() => router.push("/(auth)/register")}
-            className="w-full border-slate-600 bg-white/5"
-            textClassName="text-white"
+            className="w-full border border-slate-200 dark:border-slate-800"
           />
 
           <View className="flex-row items-center justify-center pt-4">
-            <Lock size={12} color="#94A3B8" className="mr-1.5" />
-            <Text className="text-[11px] text-slate-400 text-center">
+            <Lock
+              size={12}
+              color={isDark ? "#94A3B8" : "#64748B"}
+              className="mr-2"
+            />
+            <Text className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
               Berizin dan diawasi oleh Otoritas Jasa Keuangan (OJK)
             </Text>
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function ZapIcon() {
-  return (
-    <View>
-      <CreditCard size={20} color="#C084FC" />
-    </View>
   );
 }

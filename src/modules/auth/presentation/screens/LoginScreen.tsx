@@ -8,15 +8,17 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Fingerprint, ShieldCheck } from "lucide-react-native";
+import { ArrowLeft, Fingerprint, Settings, ShieldCheck } from "lucide-react-native";
 import { Button, Card } from "@/shared/components/ui";
 import { AuthHeader } from "../components/AuthHeader";
 import { LoginForm } from "../components/LoginForm";
 import { useAuthStore } from "@/modules/auth/application/store/useAuthStore";
+import { useColorScheme } from "@/shared/hooks/useColorScheme";
 
 export function LoginScreen() {
   const router = useRouter();
   const setSession = useAuthStore((state) => state.setSession);
+  const { isDark } = useColorScheme();
 
   const handleLoginSuccess = () => {
     router.replace("/");
@@ -51,6 +53,28 @@ export function LoginScreen() {
         showsVerticalScrollIndicator={false}
         className="flex-1 px-5"
       >
+        {/* Top Header Bar with Back and Settings Navigation */}
+        <View className="flex-row items-center justify-between pt-2 pb-1">
+          <Pressable
+            onPress={() => router.replace("/")}
+            className="flex-row items-center py-2 pr-4 active:opacity-60"
+            hitSlop={8}
+          >
+            <ArrowLeft size={20} color="#0066FF" className="mr-1.5" />
+            <Text className="text-sm font-semibold text-[#0066FF] dark:text-blue-400">
+              Beranda
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push("/settings")}
+            className="w-9 h-9 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
+            hitSlop={8}
+          >
+            <Settings size={16} color={isDark ? "#94A3B8" : "#64748B"} />
+          </Pressable>
+        </View>
+
         <AuthHeader
           title="Selamat Datang"
           subtitle="Akses seluruh layanan perbankan digital Neocentra dalam satu genggaman aman."
@@ -69,7 +93,7 @@ export function LoginScreen() {
 
         {/* Biometric Quick Login Option */}
         <Card variant="outlined" className="w-full mb-6 items-center py-4">
-          <Text className="text-xs text-slate-500 mb-3">
+          <Text className="text-xs text-slate-500 dark:text-slate-400 mb-3">
             Atau masuk cepat menggunakan biometrik
           </Text>
           <Button

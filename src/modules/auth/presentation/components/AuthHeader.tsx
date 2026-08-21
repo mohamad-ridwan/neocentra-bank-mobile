@@ -18,7 +18,7 @@ export function AuthHeader({
     <View className="items-center mb-6 pt-4">
       {/* Brand Icon Badge */}
       <View className="relative mb-3">
-        <View className="w-16 h-16 rounded-2xl bg-gradient-to-br bg-[#0066FF] items-center justify-center shadow-lg shadow-blue-500/30">
+        <View className="w-16 h-16 rounded-2xl bg-gradient-to-br bg-[#0066FF] items-center justify-center shadow-lg">
           <Landmark size={32} color="#FFFFFF" />
         </View>
         <View className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1 border-2 border-white dark:border-slate-900">
