@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -86,15 +80,17 @@ export default function SettingsScreen() {
         mode === "light"
           ? "Mode Terang"
           : mode === "dark"
-          ? "Mode Gelap"
-          : "Ikuti Sistem OS"
-      } & tersimpan di storage.`
+            ? "Mode Gelap"
+            : "Ikuti Sistem OS"
+      } & tersimpan di storage.`,
     );
   };
 
   const handleResetStorage = () => {
     setThemeMode("system");
-    setToastMessage("Pengaturan tema berhasil direset ke setelan bawaan sistem.");
+    setToastMessage(
+      "Pengaturan tema berhasil direset ke setelan bawaan sistem.",
+    );
   };
 
   return (
@@ -157,8 +153,8 @@ export default function SettingsScreen() {
                 {themeMode === "system"
                   ? `Sistem (${isDark ? "Gelap" : "Terang"})`
                   : themeMode === "dark"
-                  ? "Mode Gelap Aktif"
-                  : "Mode Terang Aktif"}
+                    ? "Mode Gelap Aktif"
+                    : "Mode Terang Aktif"}
               </Text>
               <Text className="text-xs text-blue-200/80">
                 Tersimpan sinkron di perangkat via{" "}
@@ -202,9 +198,9 @@ export default function SettingsScreen() {
                 <Pressable
                   key={opt.id}
                   onPress={() => handleSelectTheme(opt.id)}
-                  className={`p-4 rounded-2xl border transition-all mb-3 ${
+                  className={`p-4 rounded-2xl border mb-3 ${
                     isSelected
-                      ? "bg-blue-50/80 dark:bg-blue-950/30 border-[#0066FF] shadow-sm shadow-blue-500/10"
+                      ? "bg-blue-50/80 dark:bg-blue-950/30 border-[#0066FF]"
                       : "bg-white dark:bg-[#131B2E] border-slate-200/80 dark:border-slate-800"
                   }`}
                 >
@@ -253,7 +249,9 @@ export default function SettingsScreen() {
                           : "border-slate-300 dark:border-slate-700 bg-transparent"
                       }`}
                     >
-                      {isSelected && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+                      {isSelected && (
+                        <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                      )}
                     </View>
                   </View>
                 </Pressable>
@@ -398,7 +396,9 @@ export default function SettingsScreen() {
           variant="outline"
           size="md"
           onPress={handleResetStorage}
-          leftIcon={<RotateCcw size={16} color={isDark ? "#94A3B8" : "#64748B"} />}
+          leftIcon={
+            <RotateCcw size={16} color={isDark ? "#94A3B8" : "#64748B"} />
+          }
           className="w-full mb-3"
           textClassName="text-slate-700 dark:text-slate-300"
         />

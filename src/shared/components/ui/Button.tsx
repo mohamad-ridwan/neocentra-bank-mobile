@@ -47,7 +47,7 @@ export function Button({
 
   // Base container styles
   const baseContainerStyles =
-    "flex-row items-center justify-center rounded-xl font-medium transition-all active:opacity-80";
+    "flex-row items-center justify-center rounded-xl font-medium active:opacity-80";
 
   const sizeStyles: Record<ButtonSize, string> = {
     sm: "py-2 px-3.5",

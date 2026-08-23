@@ -1,22 +1,25 @@
 import React, { useEffect } from "react";
 import { StatusBar, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useColorScheme } from "@/shared/hooks/useColorScheme";
+import { useColorScheme as useNativeWindColorScheme } from "nativewind";
 import { useThemeStore } from "@/shared/stores/useThemeStore";
-import { colorScheme as nwColorScheme } from "nativewind";
 
 export interface GluestackProviderProps {
   children: React.ReactNode;
 }
 
 export function GluestackProvider({ children }: GluestackProviderProps) {
-  const { isDark } = useColorScheme();
+  const { colorScheme, setColorScheme } = useNativeWindColorScheme();
   const themeMode = useThemeStore((state) => state.themeMode);
 
-  // Sync theme mode on mount and when changed
+  // Sync theme mode with NativeWind via React effect safely
   useEffect(() => {
-    nwColorScheme.set(themeMode);
-  }, [themeMode]);
+    if (themeMode && colorScheme !== themeMode) {
+      setColorScheme(themeMode);
+    }
+  }, [themeMode, colorScheme, setColorScheme]);
+
+  const isDark = colorScheme === "dark";
 
   return (
     <SafeAreaProvider>

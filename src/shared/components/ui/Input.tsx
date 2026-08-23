@@ -46,7 +46,7 @@ export function Input({
 
       <View
         className={clsx(
-          "flex-row items-center w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-[#131B2E] transition-all",
+          "flex-row items-center w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-[#131B2E]",
           isFocused
             ? "border-[#0066FF] shadow-sm shadow-blue-500/10 dark:border-[#0066FF]"
             : error

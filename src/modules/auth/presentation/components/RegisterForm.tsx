@@ -247,7 +247,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
           hitSlop={8}
         >
           <View
-            className={`w-5 h-5 rounded-md border items-center justify-center mr-2.5 mt-0.5 transition-all ${
+            className={`w-5 h-5 rounded-md border items-center justify-center mr-2.5 mt-0.5 ${
               agreeTerms
                 ? "bg-[#0066FF] border-[#0066FF]"
                 : "border-slate-300 dark:border-slate-700 bg-transparent"

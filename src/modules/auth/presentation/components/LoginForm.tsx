@@ -108,7 +108,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
           hitSlop={8}
         >
           <View
-            className={`w-5 h-5 rounded-md border items-center justify-center mr-2 transition-all ${
+            className={`w-5 h-5 rounded-md border items-center justify-center mr-2 ${
               rememberMe
                 ? "bg-[#0066FF] border-[#0066FF]"
                 : "border-slate-300 dark:border-slate-700 bg-transparent"
