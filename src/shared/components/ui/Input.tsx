@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Pressable,
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-} from "react-native";
+import { Pressable, Text, TextInput, TextInputProps, View } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 import clsx from "clsx";
 import { Label } from "./Typography";
@@ -48,10 +42,10 @@ export function Input({
         className={clsx(
           "flex-row items-center w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-[#131B2E]",
           isFocused
-            ? "border-[#0066FF] shadow-sm shadow-blue-500/10 dark:border-[#0066FF]"
+            ? "border-[#0066FF] dark:border-[#0066FF]"
             : error
-            ? "border-rose-500 bg-rose-50/30 dark:bg-rose-950/20"
-            : "border-slate-200 dark:border-slate-800"
+              ? "border-rose-500 bg-rose-50/30 dark:bg-rose-950/20"
+              : "border-slate-200 dark:border-slate-800",
         )}
       >
         {leftIcon && <View className="mr-2.5">{leftIcon}</View>}
@@ -59,7 +53,7 @@ export function Input({
         <TextInput
           className={clsx(
             "flex-1 text-base text-slate-900 dark:text-white py-1",
-            inputClassName
+            inputClassName,
           )}
           placeholderTextColor={isDark ? "#64748B" : "#94A3B8"}
           secureTextEntry={isSecure}
