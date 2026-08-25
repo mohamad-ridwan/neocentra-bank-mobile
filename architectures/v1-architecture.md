@@ -1,14 +1,12 @@
-implementasikan arsitektur mobile app (frontend) berikut ini :
-
-# tech & framework yang sudah di install :
+# tech & framework :
 - React Native dengan Expo
 
-# konfigurasi styles dan ui component :
+# styles dan ui component :
 - NativeWind v4 (sebagai utility class)
 - gluestack-ui v4 (sebagai ui component)
 - lucide-react-native (sebagai icon component)
 
-# fitur yang akan di bangun :
+# fitur saat ini :
 - login page (untuk akun masuk yang sudah terdaftar di db aplikasi)
 - register page (untuk daftar akun sebagai pengguna sebagai calon hak akses aplikasi)
 
@@ -23,7 +21,7 @@ implementasikan arsitektur mobile app (frontend) berikut ini :
 - domain-driven design (DDD) concepts
 
 # struktur direktori :
-Berikut adalah rekomendasi struktur direktori berbasis **Domain-Driven Design (DDD) concepts** yang disesuaikan untuk React Native / Expo Router, TanStack Query, Zustand, Zod, NativeWind v4, dan Gluestack UI v4:
+Struktur direktori berbasis **Domain-Driven Design (DDD) concepts** yang disesuaikan untuk React Native / Expo Router, TanStack Query, Zustand, Zod, NativeWind v4, dan Gluestack UI v4:
 
 ```text
 src/
@@ -77,3 +75,67 @@ src/
 │   └── utils/                  # Helper functions & formatters
 ```
 
+# package.json :
+struktur package.json yang saat ini digunakan :
+```text
+{
+  "name": "neocentra-bank-mobile",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "dependencies": {
+    "@expo/ui": "~57.0.11",
+    "@tanstack/react-query": "^5.59.0",
+    "axios": "^1.7.7",
+    "clsx": "^2.1.1",
+    "expo": "~57.0.14",
+    "expo-constants": "~57.0.12",
+    "expo-dev-client": "~57.0.14",
+    "expo-device": "~57.0.1",
+    "expo-font": "~57.0.1",
+    "expo-glass-effect": "~57.0.1",
+    "expo-image": "~57.0.3",
+    "expo-linking": "~57.0.6",
+    "expo-router": "~57.0.14",
+    "expo-splash-screen": "~57.0.7",
+    "expo-status-bar": "~57.0.1",
+    "expo-symbols": "~57.0.2",
+    "expo-system-ui": "~57.0.2",
+    "expo-web-browser": "~57.0.2",
+    "lucide-react-native": "^0.453.0",
+    "nativewind": "^4.1.23",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-mmkv": "^4.3.2",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "^15.8.0",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.1",
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.23.8",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "tailwindcss": "^3.4.14",
+    "typescript": "~6.0.3"
+  },
+  "overrides": {
+    "lucide-react-native": {
+      "react": "$react"
+    }
+  },
+  "scripts": {
+    "start": "expo start",
+    "reset-project": "node ./scripts/reset-project.js",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "expo lint"
+  },
+  "private": true
+}
+```

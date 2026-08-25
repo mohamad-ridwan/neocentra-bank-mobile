@@ -1,78 +1,184 @@
+"use client";
 import React from "react";
 import { Text as RNText, TextProps as RNTextProps } from "react-native";
-import clsx from "clsx";
+import { tva } from "@gluestack-ui/utils/nativewind-utils";
+import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
 
-export interface TypographyProps extends RNTextProps {
+const headingStyle = tva({
+  base: "text-foreground tracking-tight",
+  variants: {
+    size: {
+      "2xs": "text-xs font-bold",
+      xs: "text-sm font-bold",
+      sm: "text-base font-bold",
+      md: "text-lg font-bold",
+      lg: "text-xl font-bold",
+      xl: "text-2xl font-bold",
+      "2xl": "text-3xl font-extrabold",
+      "3xl": "text-4xl font-extrabold",
+      "4xl": "text-5xl font-extrabold",
+      "5xl": "text-6xl font-extrabold",
+      "6xl": "text-7xl font-extrabold",
+    },
+    bold: {
+      true: "font-bold",
+    },
+  },
+  defaultVariants: {
+    size: "xl",
+    bold: true,
+  },
+});
+
+const textStyle = tva({
+  base: "text-foreground font-normal",
+  variants: {
+    size: {
+      "2xs": "text-[10px]",
+      xs: "text-xs",
+      sm: "text-sm",
+      md: "text-base",
+      lg: "text-lg",
+      xl: "text-xl",
+      "2xl": "text-2xl",
+      "3xl": "text-3xl",
+      "4xl": "text-4xl",
+      "5xl": "text-5xl",
+      "6xl": "text-6xl",
+    },
+    bold: {
+      true: "font-bold",
+    },
+    highlight: {
+      true: "bg-yellow-200 dark:bg-yellow-900/50 px-1 rounded",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+type IHeadingProps = RNTextProps &
+  VariantProps<typeof headingStyle> & {
+    className?: string;
+    isTruncated?: boolean;
+    children?: React.ReactNode;
+  };
+
+const Heading = React.forwardRef<
+  React.ComponentRef<typeof RNText>,
+  IHeadingProps
+>(function Heading(
+  { className, size = "xl", bold = true, isTruncated = false, ...props },
+  ref,
+) {
+  return (
+    <RNText
+      ref={ref}
+      numberOfLines={isTruncated ? 1 : undefined}
+      className={headingStyle({ size, bold, class: className })}
+      {...props}
+    />
+  );
+});
+
+type ITextProps = RNTextProps &
+  VariantProps<typeof textStyle> & {
+    className?: string;
+    isTruncated?: boolean;
+    children?: React.ReactNode;
+  };
+
+const Text = React.forwardRef<React.ComponentRef<typeof RNText>, ITextProps>(
+  function Text(
+    {
+      className,
+      size = "md",
+      bold = false,
+      highlight = false,
+      isTruncated = false,
+      ...props
+    },
+    ref,
+  ) {
+    return (
+      <RNText
+        ref={ref}
+        numberOfLines={isTruncated ? 1 : undefined}
+        className={textStyle({ size, bold, highlight, class: className })}
+        {...props}
+      />
+    );
+  },
+);
+
+type ISubheadingProps = RNTextProps & {
+  size?: "sm" | "md" | "lg";
   className?: string;
-  children: React.ReactNode;
-}
+  children?: React.ReactNode;
+};
 
-export function Heading({ className, children, ...props }: TypographyProps) {
+const Subheading = React.forwardRef<
+  React.ComponentRef<typeof RNText>,
+  ISubheadingProps
+>(function Subheading({ className, size = "md", ...props }, ref) {
+  const sizeClass =
+    size === "sm"
+      ? "text-base font-semibold"
+      : size === "lg"
+        ? "text-xl font-semibold"
+        : "text-lg font-semibold";
   return (
     <RNText
-      className={clsx(
-        "text-2xl font-bold tracking-tight text-slate-900 dark:text-white",
-        className
-      )}
+      ref={ref}
+      className={`text-foreground/90 ${sizeClass} ${className || ""}`}
       {...props}
-    >
-      {children}
-    </RNText>
+    />
   );
-}
+});
 
-export function Subheading({ className, children, ...props }: TypographyProps) {
+type ICaptionProps = RNTextProps & {
+  size?: "2xs" | "xs" | "sm";
+  className?: string;
+  children?: React.ReactNode;
+};
+
+const Caption = React.forwardRef<
+  React.ComponentRef<typeof RNText>,
+  ICaptionProps
+>(function Caption({ className, size = "xs", ...props }, ref) {
+  const sizeClass =
+    size === "2xs" ? "text-[10px]" : size === "sm" ? "text-sm" : "text-xs";
   return (
     <RNText
-      className={clsx(
-        "text-lg font-semibold text-slate-800 dark:text-slate-100",
-        className
-      )}
+      ref={ref}
+      className={`text-muted-foreground font-medium ${sizeClass} ${className || ""}`}
       {...props}
-    >
-      {children}
-    </RNText>
+    />
   );
-}
+});
 
-export function Text({ className, children, ...props }: TypographyProps) {
-  return (
-    <RNText
-      className={clsx(
-        "text-base font-normal text-slate-700 dark:text-slate-300",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </RNText>
-  );
-}
+type ILabelProps = RNTextProps & {
+  className?: string;
+  children?: React.ReactNode;
+};
 
-export function Caption({ className, children, ...props }: TypographyProps) {
-  return (
-    <RNText
-      className={clsx(
-        "text-xs font-medium text-slate-500 dark:text-slate-400",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </RNText>
-  );
-}
+const Label = React.forwardRef<React.ComponentRef<typeof RNText>, ILabelProps>(
+  function Label({ className, ...props }, ref) {
+    return (
+      <RNText
+        ref={ref}
+        className={`text-sm font-semibold text-foreground/90 dark:text-slate-300 mb-1.5 ${className || ""}`}
+        {...props}
+      />
+    );
+  },
+);
 
-export function Label({ className, children, ...props }: TypographyProps) {
-  return (
-    <RNText
-      className={clsx(
-        "text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </RNText>
-  );
-}
+Heading.displayName = "Heading";
+Text.displayName = "Text";
+Subheading.displayName = "Subheading";
+Caption.displayName = "Caption";
+Label.displayName = "Label";
+
+export { Heading, Text, Subheading, Caption, Label };

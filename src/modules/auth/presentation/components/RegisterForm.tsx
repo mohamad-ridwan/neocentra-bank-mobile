@@ -132,7 +132,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         maxLength={16}
         error={errors.nik}
         helperText={`${nik.length}/16 digit sesuai e-KTP`}
-        leftIcon={<CreditCard size={18} color="#64748B" />}
+        leftIcon={CreditCard}
       />
 
       {/* 2. Full Name Input */}
@@ -145,7 +145,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
           if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: "" }));
         }}
         error={errors.fullName}
-        leftIcon={<UserIcon size={18} color="#64748B" />}
+        leftIcon={UserIcon}
       />
 
       {/* 3. Email Input */}
@@ -160,7 +160,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         autoCapitalize="none"
         keyboardType="email-address"
         error={errors.email}
-        leftIcon={<Mail size={18} color="#64748B" />}
+        leftIcon={Mail}
       />
 
       {/* 4. Phone Number Input */}
@@ -174,7 +174,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         }}
         keyboardType="phone-pad"
         error={errors.phoneNumber}
-        leftIcon={<Phone size={18} color="#64748B" />}
+        leftIcon={Phone}
       />
 
       {/* 5. Address Input */}
@@ -187,7 +187,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
           if (errors.address) setErrors((prev) => ({ ...prev, address: "" }));
         }}
         error={errors.address}
-        leftIcon={<MapPin size={18} color="#64748B" />}
+        leftIcon={MapPin}
       />
 
       {/* 6. Password Input */}
@@ -201,7 +201,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         }}
         isPassword
         error={errors.password}
-        leftIcon={<Lock size={18} color="#64748B" />}
+        leftIcon={Lock}
       />
 
       {/* Password Strength Indicator */}
@@ -233,7 +233,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         }}
         isPassword
         error={errors.confirmPassword}
-        leftIcon={<Lock size={18} color="#64748B" />}
+        leftIcon={Lock}
       />
 
       {/* 8. Terms & Agreement */}
@@ -277,7 +277,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         size="lg"
         isLoading={registerMutation.isPending}
         onPress={handleValidationAndSubmit}
-        leftIcon={<UserPlus size={18} color="#FFFFFF" />}
+        leftIcon={UserPlus}
         className="w-full mb-3"
       />
 

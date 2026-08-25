@@ -101,7 +101,7 @@ export function LoginScreen() {
             variant="secondary"
             size="md"
             onPress={handleBiometricMock}
-            leftIcon={<Fingerprint size={20} color="#0066FF" />}
+            leftIcon={Fingerprint}
             className="w-full border border-blue-100 dark:border-blue-900/30"
           />
         </Card>

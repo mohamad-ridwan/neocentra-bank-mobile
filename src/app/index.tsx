@@ -246,7 +246,7 @@ export default function EntryScreen() {
             variant="secondary"
             size="md"
             onPress={() => router.push("/settings")}
-            leftIcon={<Settings size={16} color="#0066FF" />}
+            leftIcon={Settings}
             className="w-full mb-3"
           />
 
@@ -256,7 +256,7 @@ export default function EntryScreen() {
             variant="outline"
             size="md"
             onPress={logout}
-            leftIcon={<LogOut size={16} color="#EF4444" />}
+            leftIcon={LogOut}
             className="w-full border-rose-200 dark:border-rose-900/40"
             textClassName="text-rose-600 dark:text-rose-400"
           />

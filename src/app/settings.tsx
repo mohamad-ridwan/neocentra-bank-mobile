@@ -396,9 +396,7 @@ export default function SettingsScreen() {
           variant="outline"
           size="md"
           onPress={handleResetStorage}
-          leftIcon={
-            <RotateCcw size={16} color={isDark ? "#94A3B8" : "#64748B"} />
-          }
+          leftIcon={RotateCcw}
           className="w-full mb-3"
           textClassName="text-slate-700 dark:text-slate-300"
         />

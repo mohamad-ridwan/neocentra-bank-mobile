@@ -77,7 +77,7 @@ export function RegisterScreen() {
                 <Badge
                   label="MENUNGGU VERIFIKASI"
                   variant="warning"
-                  icon={<Clock size={12} color="#F59E0B" />}
+                  icon={Clock}
                 />
               </View>
 
@@ -114,7 +114,7 @@ export function RegisterScreen() {
               variant="primary"
               size="lg"
               onPress={() => router.replace("/(auth)/login")}
-              leftIcon={<LogIn size={18} color="#FFFFFF" />}
+              leftIcon={LogIn}
               className="w-full mb-3"
             />
           </View>

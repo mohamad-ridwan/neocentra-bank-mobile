@@ -83,7 +83,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
         autoCapitalize="none"
         keyboardType="email-address"
         error={errors.identifier}
-        leftIcon={<Mail size={18} color="#64748B" />}
+        leftIcon={Mail}
       />
 
       {/* Password Input */}
@@ -97,7 +97,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
         }}
         isPassword
         error={errors.password}
-        leftIcon={<Lock size={18} color="#64748B" />}
+        leftIcon={Lock}
       />
 
       {/* Remember Me & Forgot Password */}
@@ -135,7 +135,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
         size="lg"
         isLoading={loginMutation.isPending}
         onPress={handleValidationAndSubmit}
-        leftIcon={<LogIn size={18} color="#FFFFFF" />}
+        leftIcon={LogIn}
         className="w-full mb-3"
       />
 
