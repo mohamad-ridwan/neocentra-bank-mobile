@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +20,7 @@ export function RegisterScreen() {
   const router = useRouter();
   const { isDark } = useColorScheme();
   const [successData, setSuccessData] = useState<RegisterResponse | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   const handleRegisterSuccess = (data: RegisterResponse) => {
     setSuccessData(data);
@@ -31,6 +32,7 @@ export function RegisterScreen() {
       className="flex-1"
     >
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         className="flex-1 px-5"
@@ -128,6 +130,7 @@ export function RegisterScreen() {
             />
 
             <RegisterForm
+              scrollRef={scrollRef}
               onSuccess={handleRegisterSuccess}
               onOpenTerms={() => {
                 alert("Syarat dan Ketentuan Nasabah Neocentra Bank berlaku sesuai standar regulasi BI & OJK.");

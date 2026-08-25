@@ -131,6 +131,61 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
     size === "xl" ? 22 : size === "lg" ? 20 : size === "sm" ? 16 : 18;
   const iconDefaultColor = isDark ? "#94A3B8" : "#64748B";
 
+  const containerRef = React.useRef<View>(null);
+  const inputRef = React.useRef<TextInput>(null);
+
+  React.useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus();
+    },
+    blur: () => {
+      inputRef.current?.blur();
+    },
+    isFocused: () => {
+      return inputRef.current?.isFocused?.() ?? false;
+    },
+    clear: () => {
+      inputRef.current?.clear?.();
+    },
+    measureLayout: (
+      relativeToNativeComponentRef: any,
+      onSuccess: (left: number, top: number, width: number, height: number) => void,
+      onFail?: () => void,
+    ) => {
+      if (containerRef.current?.measureLayout) {
+        containerRef.current.measureLayout(
+          relativeToNativeComponentRef,
+          onSuccess,
+          onFail || (() => {}),
+        );
+      } else if (inputRef.current?.measureLayout) {
+        inputRef.current.measureLayout(
+          relativeToNativeComponentRef,
+          onSuccess,
+          onFail || (() => {}),
+        );
+      }
+    },
+    measure: (
+      callback: (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        pageX: number,
+        pageY: number,
+      ) => void,
+    ) => {
+      if (containerRef.current?.measure) {
+        containerRef.current.measure(callback);
+      } else if (inputRef.current?.measure) {
+        inputRef.current.measure(callback);
+      }
+    },
+    getNativeInput: () => inputRef.current,
+    getContainer: () => containerRef.current,
+  }));
+
   // Compound component mode
   if (children) {
     return (
@@ -150,11 +205,10 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
 
   // High-level wrapper mode
   return (
-    <View className={containerClassName || "w-full mb-4"}>
+    <View ref={containerRef} className={containerClassName || "w-full mb-4"}>
       {label && <Label>{label}</Label>}
 
       <UIInput
-        ref={ref}
         isInvalid={hasError}
         isDisabled={isDisabled}
         isReadOnly={isReadOnly}
@@ -173,6 +227,7 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
         )}
 
         <InputField
+          ref={inputRef}
           className={inputClassName}
           placeholderTextColor={
             placeholderTextColor || (isDark ? "#64748B" : "#94A3B8")

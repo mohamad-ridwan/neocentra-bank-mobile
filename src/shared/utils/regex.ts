@@ -9,3 +9,10 @@ export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 // 1. Definisikan karakter yang diizinkan (Whitelisting)
 // Hanya izinkan karakter yang valid untuk email
 export const allowedEmailChars = /[^a-zA-Z0-9._%+-@]/g;
+
+// Izinkan digit dan karakter '+' untuk format internasional
+export const allowedPhoneChars = /[^0-9+]/g;
+
+// Izinkan alfanumerik, spasi, titik, koma, strip, dan garis miring (untuk alamat)
+export const allowedAddressChars = /[^a-zA-Z0-9\s.,\-\/]/g;
+

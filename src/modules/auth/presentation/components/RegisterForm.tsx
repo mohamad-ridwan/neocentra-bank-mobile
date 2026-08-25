@@ -1,5 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { useMemo, useRef } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { useForm, Controller, FieldErrors } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Check,
   CreditCard,
@@ -7,39 +9,73 @@ import {
   Mail,
   MapPin,
   Phone,
-  ShieldAlert,
   Sparkles,
   User as UserIcon,
   UserPlus,
 } from "lucide-react-native";
 import { Button, Card, Input, Toast } from "@/shared/components/ui";
-import { registerSchema } from "@/modules/auth/domain/schemas/register.schema";
+import {
+  registerSchema,
+  RegisterFormData,
+} from "@/modules/auth/domain/schemas/register.schema";
 import { useRegisterMutation } from "@/modules/auth/application/queries/useRegisterMutation";
 import { RegisterResponse } from "@/modules/auth/infrastructure/api/auth.api";
 import {
+  allowedAddressChars,
   allowedEmailChars,
-  emailRegex,
+  allowedPhoneChars,
   nonLetterAndSpaceRegex,
   nonNumericRegex,
 } from "@/shared/utils/regex";
 
 export interface RegisterFormProps {
+  scrollRef?: React.RefObject<ScrollView | null>;
   onSuccess?: (data: RegisterResponse) => void;
   onOpenTerms?: () => void;
 }
 
-export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
-  const [nik, setNik] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [address, setAddress] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreeTerms, setAgreeTerms] = useState(false);
+// Urutan field dari atas ke bawah untuk auto-scroll deterministik
+const FIELD_ORDER: (keyof RegisterFormData)[] = [
+  "nik",
+  "fullName",
+  "email",
+  "phoneNumber",
+  "address",
+  "password",
+  "confirmPassword",
+  "agreeTerms",
+];
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+export function RegisterForm({
+  scrollRef,
+  onSuccess,
+  onOpenTerms,
+}: RegisterFormProps) {
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+  // Ref dictionary untuk menyimpan referensi setiap elemen input
+  const inputRefs = useRef<Record<string, any>>({});
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      nik: "",
+      fullName: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
+      password: "",
+      confirmPassword: "",
+      agreeTerms: false as any,
+    },
+    mode: "onBlur",
+  });
 
   const registerMutation = useRegisterMutation({
     onSuccess: (data) => {
@@ -53,7 +89,9 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
     },
   });
 
-  // Password strength calculation
+  // Watch password untuk penghitungan indikator kekuatan kata sandi secara reaktif
+  const password = watch("password") || "";
+
   const passwordStrength = useMemo(() => {
     let score = 0;
     if (password.length >= 8) score += 1;
@@ -61,7 +99,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
     if (/[a-z]/.test(password)) score += 1;
     if (/[0-9]/.test(password)) score += 1;
     if (/[^A-Za-z0-9]/.test(password)) score += 1;
-    return score; // max 5
+    return score;
   }, [password]);
 
   const strengthLabel = useMemo(() => {
@@ -71,47 +109,61 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
     return { text: "Sangat Kuat", color: "bg-emerald-500" };
   }, [password, passwordStrength]);
 
-  const handleValidationAndSubmit = () => {
+  /**
+   * Handler saat validasi form BERHASIL
+   * Meneruskan data yang sudah divalidasi ke TanStack Query useMutation
+   */
+  const onSubmit = (data: RegisterFormData) => {
     setErrorMessage(null);
+    registerMutation.mutate(data);
+  };
 
-    const formData = {
-      nik: nik.trim(),
-      fullName: fullName.trim(),
-      email: email.trim(),
-      phoneNumber: phoneNumber.trim(),
-      address: address.trim(),
-      password,
-      confirmPassword,
-      agreeTerms,
-    };
+  /**
+   * Handler saat validasi form GAGAL (Best Practice Auto-Focus & Auto-Scroll)
+   * 1. Menentukan field pertama yang error berdasarkan urutan visual (FIELD_ORDER)
+   * 2. Menjalankan focus() pada input terkait
+   * 3. Mengukur posisi elemen terhadap ScrollView menggunakan measureLayout
+   * 4. Melakukan scroll animasi ke posisi target dengan offset yang nyaman
+   */
+  const onError = (formErrors: FieldErrors<RegisterFormData>) => {
+    // 1. Ambil field pertama yang error berdasarkan urutan schema/layout
+    const firstError = FIELD_ORDER.find((field) => formErrors[field]);
+    if (!firstError) return;
 
-    const result = registerSchema.safeParse(formData);
+    const targetElement = inputRefs.current[firstError];
+    if (targetElement) {
+      // 2. Fokus ke input tersebut
+      targetElement.focus?.();
 
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((err) => {
-        if (err.path[0]) {
-          fieldErrors[err.path[0] as string] = err.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return;
+      // 3. Scroll ke posisi input secara presisi di dalam ScrollView
+      if (scrollRef?.current && targetElement.measureLayout) {
+        targetElement.measureLayout(
+          scrollRef.current,
+          (_x: number, y: number) => {
+            scrollRef.current?.scrollTo({
+              y: Math.max(0, y - 24), // Margin 24px untuk padding visual label & header
+              animated: true,
+            });
+          },
+          () => {
+            // Fallback jika measureLayout belum siap
+          },
+        );
+      }
     }
-
-    setErrors({});
-    registerMutation.mutate(result.data);
   };
 
   const handleFillDemo = () => {
-    setNik("3201010101990001");
-    setFullName("Budi Santoso");
-    setEmail("budi.santoso@neocentra.bank");
-    setPhoneNumber("081298765432");
-    setAddress("Jl. Sudirman No. 45, Jakarta Selatan");
-    setPassword("Neocentra2026!");
-    setConfirmPassword("Neocentra2026!");
-    setAgreeTerms(true);
-    setErrors({});
+    reset({
+      nik: "3201010101990001",
+      fullName: "Budi Santoso",
+      email: "budi.santoso@neocentra.bank",
+      phoneNumber: "081298765432",
+      address: "Jl. Sudirman No. 45, Jakarta Selatan",
+      password: "Neocentra2026!",
+      confirmPassword: "Neocentra2026!",
+      agreeTerms: true,
+    });
     setErrorMessage(null);
   };
 
@@ -127,98 +179,154 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
       )}
 
       {/* 1. NIK Input */}
-      <Input
-        label="Nomor Induk Kependudukan (NIK)"
-        placeholder="16 digit angka KTP"
-        value={nik}
-        onChangeText={(val) => {
-          const digits = val.replace(nonNumericRegex, "").slice(0, 16);
-          setNik(digits);
-          if (errors.nik) setErrors((prev) => ({ ...prev, nik: "" }));
-        }}
-        keyboardType="numeric"
-        maxLength={16}
-        error={errors.nik}
-        helperText={`${nik.length}/16 digit sesuai e-KTP`}
-        leftIcon={CreditCard}
+      <Controller
+        control={control}
+        name="nik"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.nik = el;
+            }}
+            label="Nomor Induk Kependudukan (NIK)"
+            placeholder="16 digit angka KTP"
+            value={value}
+            onChangeText={(val) => {
+              const digits = val.replace(nonNumericRegex, "").slice(0, 16);
+              onChange(digits);
+            }}
+            onBlur={onBlur}
+            keyboardType="numeric"
+            maxLength={16}
+            error={errors.nik?.message}
+            helperText={`${(value || "").length}/16 digit sesuai e-KTP`}
+            leftIcon={CreditCard}
+          />
+        )}
       />
 
       {/* 2. Full Name Input */}
-      <Input
-        label="Nama Lengkap (Sesuai KTP)"
-        placeholder="Masukkan nama lengkap"
-        value={fullName}
-        onChangeText={(val) => {
-          const alphabet = val.replace(nonLetterAndSpaceRegex, "");
-          setFullName(alphabet);
-          if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: "" }));
-        }}
-        error={errors.fullName}
-        leftIcon={UserIcon}
+      <Controller
+        control={control}
+        name="fullName"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.fullName = el;
+            }}
+            label="Nama Lengkap (Sesuai KTP)"
+            placeholder="Masukkan nama lengkap"
+            value={value}
+            onChangeText={(val) => {
+              const alphabet = val.replace(nonLetterAndSpaceRegex, "");
+              onChange(alphabet);
+            }}
+            onBlur={onBlur}
+            error={errors.fullName?.message}
+            leftIcon={UserIcon}
+          />
+        )}
       />
 
       {/* 3. Email Input */}
-      <Input
-        label="Alamat Email Aktif"
-        placeholder="nama@email.com"
-        value={email}
-        onChangeText={(val) => {
-          const validEmail = val
-            .replace(allowedEmailChars, "")
-            .replace(/\s/g, "");
-          setEmail(validEmail);
-          if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
-        }}
-        autoCapitalize="none"
-        autoComplete="off"
-        autoCorrect={false}
-        textContentType="emailAddress"
-        importantForAutofill="no"
-        keyboardType="email-address"
-        error={errors.email}
-        leftIcon={Mail}
+      <Controller
+        control={control}
+        name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.email = el;
+            }}
+            label="Alamat Email Aktif"
+            placeholder="nama@email.com"
+            value={value}
+            onChangeText={(val) => {
+              const validEmail = val
+                .replace(allowedEmailChars, "")
+                .replace(/\s/g, "");
+              onChange(validEmail);
+            }}
+            onBlur={onBlur}
+            autoCapitalize="none"
+            autoComplete="off"
+            autoCorrect={false}
+            textContentType="emailAddress"
+            importantForAutofill="no"
+            keyboardType="email-address"
+            error={errors.email?.message}
+            leftIcon={Mail}
+          />
+        )}
       />
 
       {/* 4. Phone Number Input */}
-      <Input
-        label="Nomor Handphone (WhatsApp / SMS)"
-        placeholder="0812xxxxxxx"
-        value={phoneNumber}
-        onChangeText={(val) => {
-          setPhoneNumber(val);
-          if (errors.phoneNumber)
-            setErrors((prev) => ({ ...prev, phoneNumber: "" }));
-        }}
-        keyboardType="phone-pad"
-        error={errors.phoneNumber}
-        leftIcon={Phone}
+      <Controller
+        control={control}
+        name="phoneNumber"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.phoneNumber = el;
+            }}
+            label="Nomor Handphone (WhatsApp / SMS)"
+            placeholder="0812xxxxxxx"
+            value={value}
+            onChangeText={(val) => {
+              const sanitizedPhone = val.replace(allowedPhoneChars, "");
+              onChange(sanitizedPhone);
+            }}
+            onBlur={onBlur}
+            keyboardType="phone-pad"
+            error={errors.phoneNumber?.message}
+            leftIcon={Phone}
+          />
+        )}
       />
 
       {/* 5. Address Input */}
-      <Input
-        label="Alamat Domisili Lengkap"
-        placeholder="Nama jalan, RT/RW, kelurahan, kota"
-        value={address}
-        onChangeText={(val) => {
-          setAddress(val);
-          if (errors.address) setErrors((prev) => ({ ...prev, address: "" }));
-        }}
-        error={errors.address}
-        leftIcon={MapPin}
+      <Controller
+        control={control}
+        name="address"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.address = el;
+            }}
+            label="Alamat Domisili Lengkap"
+            placeholder="Nama jalan, RT/RW, kelurahan, kota"
+            value={value}
+            onChangeText={(val) => {
+              const sanitizedAddress = val.replace(allowedAddressChars, "");
+              onChange(sanitizedAddress);
+            }}
+            onBlur={onBlur}
+            error={errors.address?.message}
+            leftIcon={MapPin}
+          />
+        )}
       />
 
       {/* 6. Password Input */}
-      <Input
-        label="Password Akun Baru"
-        placeholder="Minimal 8 karakter (huruf besar, angka)"
-        value={password}
-        onChangeText={(val) => {
-          setPassword(val);
-          if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
-        }}
-        isPassword
-        error={errors.password}
-        leftIcon={Lock}
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.password = el;
+            }}
+            label="Password Akun Baru"
+            placeholder="Minimal 12 karakter (huruf besar, angka)"
+            value={value}
+            onChangeText={(val) => {
+              const cleanPassword = val.trim();
+              onChange(cleanPassword);
+            }}
+            onBlur={onBlur}
+            isPassword
+            error={errors.password?.message}
+            leftIcon={Lock}
+          />
+        )}
       />
 
       {/* Password Strength Indicator */}
@@ -239,55 +347,74 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         </View>
       )}
 
-      {/* 7. Confirm Password Input */}
-      <Input
-        label="Konfirmasi Password"
-        placeholder="Ulangi kata sandi baru"
-        value={confirmPassword}
-        onChangeText={(val) => {
-          setConfirmPassword(val);
-          if (errors.confirmPassword)
-            setErrors((prev) => ({ ...prev, confirmPassword: "" }));
-        }}
-        isPassword
-        error={errors.confirmPassword}
-        leftIcon={Lock}
+      {/* 7. Konfirmasi Password */}
+      <Controller
+        control={control}
+        name="confirmPassword"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.confirmPassword = el;
+            }}
+            label="Konfirmasi Password"
+            placeholder="Ulangi kata sandi baru"
+            value={value}
+            onChangeText={(val) => {
+              const cleanConfirm = val.trim();
+              onChange(cleanConfirm);
+            }}
+            onBlur={onBlur}
+            isPassword
+            error={errors.confirmPassword?.message}
+            leftIcon={Lock}
+          />
+        )}
       />
 
       {/* 8. Terms & Agreement */}
-      <View className="mb-5">
-        <Pressable
-          onPress={() => {
-            setAgreeTerms(!agreeTerms);
-            if (errors.agreeTerms)
-              setErrors((prev) => ({ ...prev, agreeTerms: "" }));
-          }}
-          className="flex-row items-start"
-          hitSlop={8}
-        >
+      <Controller
+        control={control}
+        name="agreeTerms"
+        render={({ field: { onChange, value } }) => (
           <View
-            className={`w-5 h-5 rounded-md border items-center justify-center mr-2.5 mt-0.5 ${
-              agreeTerms
-                ? "bg-[#0066FF] border-[#0066FF]"
-                : "border-slate-300 dark:border-slate-700 bg-transparent"
-            }`}
+            ref={(el) => {
+              inputRefs.current.agreeTerms = el;
+            }}
+            className="mb-5"
           >
-            {agreeTerms && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+            <Pressable
+              onPress={() => onChange(!value)}
+              className="flex-row items-start"
+              hitSlop={8}
+            >
+              <View
+                className={`w-5 h-5 rounded-md border items-center justify-center mr-2.5 mt-0.5 ${
+                  value
+                    ? "bg-[#0066FF] border-[#0066FF]"
+                    : "border-slate-300 dark:border-slate-700 bg-transparent"
+                }`}
+              >
+                {value && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+              </View>
+              <Text className="flex-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Saya menyetujui{" "}
+                <Text
+                  onPress={onOpenTerms}
+                  className="text-[#0066FF] dark:text-blue-400 font-semibold"
+                >
+                  Syarat & Ketentuan Pembukaan Rekening
+                </Text>{" "}
+                serta perlindungan data nasabah Neocentra Bank.
+              </Text>
+            </Pressable>
+            {errors.agreeTerms && (
+              <Text className="text-xs text-rose-500 font-medium mt-1 ml-7">
+                {errors.agreeTerms.message}
+              </Text>
+            )}
           </View>
-          <Text className="flex-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Saya menyetujui{" "}
-            <Text className="text-[#0066FF] dark:text-blue-400 font-semibold">
-              Syarat & Ketentuan Pembukaan Rekening
-            </Text>{" "}
-            serta perlindungan data nasabah Neocentra Bank.
-          </Text>
-        </Pressable>
-        {errors.agreeTerms && (
-          <Text className="text-xs text-rose-500 font-medium mt-1 ml-7">
-            {errors.agreeTerms}
-          </Text>
         )}
-      </View>
+      />
 
       {/* Submit Button */}
       <Button
@@ -295,7 +422,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         variant="primary"
         size="lg"
         isLoading={registerMutation.isPending}
-        onPress={handleValidationAndSubmit}
+        onPress={handleSubmit(onSubmit, onError)}
         leftIcon={UserPlus}
         className="w-full mb-3"
       />
