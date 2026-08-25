@@ -88,9 +88,7 @@ export type IInputProps = Omit<
 
 const Input = React.forwardRef<any, IInputProps>(function Input(
   {
-    className,
-    size = "md",
-    variant = "outline",
+    // Custom container & wrapper props
     label,
     error,
     helperText,
@@ -100,16 +98,24 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
     containerClassName,
     inputClassName,
     placeholderTextColor,
-    secureTextEntry,
-    children,
-    value,
-    onChangeText,
-    placeholder,
-    keyboardType,
-    autoCapitalize,
-    maxLength,
+
+    // Gluestack styling & state props
+    size = "md",
+    variant = "outline",
+    className,
+    isInvalid,
+    isDisabled,
+    isReadOnly,
+    isRequired,
+
+    // Focus/Blur wrappers
     onFocus,
     onBlur,
+
+    // Children for compound component usage
+    children,
+
+    // Spread the rest to standard TextInputProps
     ...props
   },
   ref,
@@ -118,19 +124,22 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const hasError = Boolean(error) || Boolean(props.isInvalid);
+  const hasError = Boolean(error) || isInvalid;
   const isSecure = isPassword && !showPassword;
 
-  const iconDefaultSize = size === "xl" ? 22 : size === "lg" ? 20 : size === "sm" ? 16 : 18;
+  const iconDefaultSize =
+    size === "xl" ? 22 : size === "lg" ? 20 : size === "sm" ? 16 : 18;
   const iconDefaultColor = isDark ? "#94A3B8" : "#64748B";
 
   // Compound component mode
-  if (children && value === undefined && !onChangeText && !label && !error) {
+  if (children) {
     return (
       <UIInput
         ref={ref}
-        {...(props as any)}
         isInvalid={hasError}
+        isDisabled={isDisabled}
+        isReadOnly={isReadOnly}
+        isRequired={isRequired}
         className={inputStyle({ size, variant, class: className })}
         context={{ size, variant }}
       >
@@ -146,8 +155,10 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
 
       <UIInput
         ref={ref}
-        {...(props as any)}
         isInvalid={hasError}
+        isDisabled={isDisabled}
+        isReadOnly={isReadOnly}
+        isRequired={isRequired}
         className={inputStyle({
           size,
           variant,
@@ -163,12 +174,6 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
 
         <InputField
           className={inputClassName}
-          placeholder={placeholder}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          maxLength={maxLength}
           placeholderTextColor={
             placeholderTextColor || (isDark ? "#64748B" : "#94A3B8")
           }
@@ -181,7 +186,7 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
             setIsFocused(false);
             onBlur?.(e);
           }}
-          {...(props as any)}
+          {...props}
         />
 
         {isPassword ? (

@@ -16,6 +16,12 @@ import { Button, Card, Input, Toast } from "@/shared/components/ui";
 import { registerSchema } from "@/modules/auth/domain/schemas/register.schema";
 import { useRegisterMutation } from "@/modules/auth/application/queries/useRegisterMutation";
 import { RegisterResponse } from "@/modules/auth/infrastructure/api/auth.api";
+import {
+  allowedEmailChars,
+  emailRegex,
+  nonLetterAndSpaceRegex,
+  nonNumericRegex,
+} from "@/shared/utils/regex";
 
 export interface RegisterFormProps {
   onSuccess?: (data: RegisterResponse) => void;
@@ -41,7 +47,9 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
       onSuccess?.(data);
     },
     onError: (err) => {
-      setErrorMessage(err.message || "Gagal melakukan registrasi. Silakan coba lagi.");
+      setErrorMessage(
+        err.message || "Gagal melakukan registrasi. Silakan coba lagi.",
+      );
     },
   });
 
@@ -124,7 +132,7 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         placeholder="16 digit angka KTP"
         value={nik}
         onChangeText={(val) => {
-          const digits = val.replace(/\D/g, "").slice(0, 16);
+          const digits = val.replace(nonNumericRegex, "").slice(0, 16);
           setNik(digits);
           if (errors.nik) setErrors((prev) => ({ ...prev, nik: "" }));
         }}
@@ -141,7 +149,8 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         placeholder="Masukkan nama lengkap"
         value={fullName}
         onChangeText={(val) => {
-          setFullName(val);
+          const alphabet = val.replace(nonLetterAndSpaceRegex, "");
+          setFullName(alphabet);
           if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: "" }));
         }}
         error={errors.fullName}
@@ -154,10 +163,17 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         placeholder="nama@email.com"
         value={email}
         onChangeText={(val) => {
-          setEmail(val);
+          const validEmail = val
+            .replace(allowedEmailChars, "")
+            .replace(/\s/g, "");
+          setEmail(validEmail);
           if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
         }}
         autoCapitalize="none"
+        autoComplete="off"
+        autoCorrect={false}
+        textContentType="emailAddress"
+        importantForAutofill="no"
         keyboardType="email-address"
         error={errors.email}
         leftIcon={Mail}
@@ -170,7 +186,8 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         value={phoneNumber}
         onChangeText={(val) => {
           setPhoneNumber(val);
-          if (errors.phoneNumber) setErrors((prev) => ({ ...prev, phoneNumber: "" }));
+          if (errors.phoneNumber)
+            setErrors((prev) => ({ ...prev, phoneNumber: "" }));
         }}
         keyboardType="phone-pad"
         error={errors.phoneNumber}
@@ -229,7 +246,8 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         value={confirmPassword}
         onChangeText={(val) => {
           setConfirmPassword(val);
-          if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+          if (errors.confirmPassword)
+            setErrors((prev) => ({ ...prev, confirmPassword: "" }));
         }}
         isPassword
         error={errors.confirmPassword}
@@ -241,7 +259,8 @@ export function RegisterForm({ onSuccess, onOpenTerms }: RegisterFormProps) {
         <Pressable
           onPress={() => {
             setAgreeTerms(!agreeTerms);
-            if (errors.agreeTerms) setErrors((prev) => ({ ...prev, agreeTerms: "" }));
+            if (errors.agreeTerms)
+              setErrors((prev) => ({ ...prev, agreeTerms: "" }));
           }}
           className="flex-row items-start"
           hitSlop={8}
