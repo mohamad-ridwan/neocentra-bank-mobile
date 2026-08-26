@@ -378,7 +378,6 @@ export function RegisterForm({
             importantForAutofill="no"
             contextMenuHidden={true}
             selectTextOnFocus={false}
-            secureTextEntry={false}
           />
         )}
       />
@@ -429,7 +428,6 @@ export function RegisterForm({
             importantForAutofill="no"
             contextMenuHidden={true}
             selectTextOnFocus={false}
-            secureTextEntry={false}
           />
         )}
       />
