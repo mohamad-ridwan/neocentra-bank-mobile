@@ -13,7 +13,7 @@ import {
   User as UserIcon,
   UserPlus,
 } from "lucide-react-native";
-import { Button, Card, Input, Toast } from "@/shared/components/ui";
+import { Button, Card, Input } from "@/shared/components/ui";
 import {
   registerSchema,
   RegisterFormData,
@@ -27,6 +27,7 @@ import {
   nonLetterAndSpaceRegex,
   nonNumericRegex,
 } from "@/shared/utils/regex";
+import UseToast from "@/shared/hooks/UseToast";
 
 export interface RegisterFormProps {
   scrollRef?: React.RefObject<ScrollView | null>;
@@ -51,7 +52,16 @@ export function RegisterForm({
   onSuccess,
   onOpenTerms,
 }: RegisterFormProps) {
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const { handleToast } = UseToast();
+
+  const handlePasteBlocked = () => {
+    handleToast({
+      message:
+        "Demi keamanan perbankan, pengisian data dari papan klip (paste) tidak diperbolehkan.",
+      title: "Keamanan Perbankan",
+      type: "warning",
+    });
+  };
 
   // Ref dictionary untuk menyimpan referensi setiap elemen input
   const inputRefs = useRef<Record<string, any>>({});
@@ -79,13 +89,15 @@ export function RegisterForm({
 
   const registerMutation = useRegisterMutation({
     onSuccess: (data) => {
-      setErrorMessage(null);
       onSuccess?.(data);
     },
     onError: (err) => {
-      setErrorMessage(
-        err.message || "Gagal melakukan registrasi. Silakan coba lagi.",
-      );
+      handleToast({
+        message:
+          err.message || "Gagal melakukan registrasi. Silakan coba lagi.",
+        title: "Registrasi Gagal",
+        type: "error",
+      });
     },
   });
 
@@ -114,7 +126,6 @@ export function RegisterForm({
    * Meneruskan data yang sudah divalidasi ke TanStack Query useMutation
    */
   const onSubmit = (data: RegisterFormData) => {
-    setErrorMessage(null);
     registerMutation.mutate(data);
   };
 
@@ -164,20 +175,10 @@ export function RegisterForm({
       confirmPassword: "Neocentra2026!",
       agreeTerms: true,
     });
-    setErrorMessage(null);
   };
 
   return (
     <Card variant="elevated" className="w-full mb-6">
-      {errorMessage && (
-        <Toast
-          type="error"
-          title="Registrasi Gagal"
-          message={errorMessage}
-          onDismiss={() => setErrorMessage(null)}
-        />
-      )}
-
       {/* 1. NIK Input */}
       <Controller
         control={control}
@@ -190,6 +191,8 @@ export function RegisterForm({
             label="Nomor Induk Kependudukan (NIK)"
             placeholder="16 digit angka KTP"
             value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const digits = val.replace(nonNumericRegex, "").slice(0, 16);
               onChange(digits);
@@ -216,6 +219,8 @@ export function RegisterForm({
             label="Nama Lengkap (Sesuai KTP)"
             placeholder="Masukkan nama lengkap"
             value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const alphabet = val.replace(nonLetterAndSpaceRegex, "");
               onChange(alphabet);
@@ -239,6 +244,8 @@ export function RegisterForm({
             label="Alamat Email Aktif"
             placeholder="nama@email.com"
             value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const validEmail = val
                 .replace(allowedEmailChars, "")
@@ -249,7 +256,7 @@ export function RegisterForm({
             autoCapitalize="none"
             autoComplete="off"
             autoCorrect={false}
-            textContentType="emailAddress"
+            textContentType="none"
             importantForAutofill="no"
             keyboardType="email-address"
             error={errors.email?.message}
@@ -270,6 +277,8 @@ export function RegisterForm({
             label="Nomor Handphone (WhatsApp / SMS)"
             placeholder="0812xxxxxxx"
             value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const sanitizedPhone = val.replace(allowedPhoneChars, "");
               onChange(sanitizedPhone);
@@ -294,6 +303,8 @@ export function RegisterForm({
             label="Alamat Domisili Lengkap"
             placeholder="Nama jalan, RT/RW, kelurahan, kota"
             value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const sanitizedAddress = val.replace(allowedAddressChars, "");
               onChange(sanitizedAddress);
@@ -317,6 +328,8 @@ export function RegisterForm({
             label="Password Akun Baru"
             placeholder="Minimal 12 karakter (huruf besar, angka)"
             value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const cleanPassword = val.trim();
               onChange(cleanPassword);
@@ -359,6 +372,8 @@ export function RegisterForm({
             label="Konfirmasi Password"
             placeholder="Ulangi kata sandi baru"
             value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const cleanConfirm = val.trim();
               onChange(cleanConfirm);

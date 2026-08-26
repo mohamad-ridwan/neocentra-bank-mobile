@@ -83,6 +83,8 @@ export type IInputProps = Omit<
     containerClassName?: string;
     inputClassName?: string;
     placeholderTextColor?: string;
+    preventPaste?: boolean;
+    onPasteBlocked?: () => void;
     children?: React.ReactNode;
   };
 
@@ -98,6 +100,8 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
     containerClassName,
     inputClassName,
     placeholderTextColor,
+    preventPaste = false,
+    onPasteBlocked,
 
     // Gluestack styling & state props
     size = "md",
@@ -112,6 +116,11 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
     onFocus,
     onBlur,
 
+    // TextInput props to handle explicitly for paste prevention
+    value,
+    onChangeText,
+    contextMenuHidden,
+
     // Children for compound component usage
     children,
 
@@ -123,6 +132,24 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
   const { isDark } = useColorScheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const lastValueRef = React.useRef<string>(value ? String(value) : "");
+  React.useEffect(() => {
+    lastValueRef.current = value ? String(value) : "";
+  }, [value]);
+
+  const handleTextChange = (val: string) => {
+    if (preventPaste) {
+      const prevVal = lastValueRef.current || "";
+      const diff = val.length - prevVal.length;
+      if (diff > 1) {
+        onPasteBlocked?.();
+        return;
+      }
+    }
+    lastValueRef.current = val;
+    onChangeText?.(val);
+  };
 
   const hasError = Boolean(error) || isInvalid;
   const isSecure = isPassword && !showPassword;
@@ -149,7 +176,12 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
     },
     measureLayout: (
       relativeToNativeComponentRef: any,
-      onSuccess: (left: number, top: number, width: number, height: number) => void,
+      onSuccess: (
+        left: number,
+        top: number,
+        width: number,
+        height: number,
+      ) => void,
       onFail?: () => void,
     ) => {
       if (containerRef.current?.measureLayout) {
@@ -233,6 +265,9 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
             placeholderTextColor || (isDark ? "#64748B" : "#94A3B8")
           }
           secureTextEntry={isSecure}
+          value={value}
+          onChangeText={handleTextChange}
+          contextMenuHidden={preventPaste || contextMenuHidden}
           onFocus={(e: any) => {
             setIsFocused(true);
             onFocus?.(e);

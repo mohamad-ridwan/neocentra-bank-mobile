@@ -1,13 +1,15 @@
-'use client';
-import React, { useEffect } from 'react';
-import { StatusBar, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
-import { useThemeStore } from '@/shared/stores/useThemeStore';
+"use client";
+import React, { useEffect } from "react";
+import { StatusBar, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useColorScheme as useNativeWindColorScheme } from "nativewind";
+import { useThemeStore } from "@/shared/stores/useThemeStore";
+import { ToastProvider } from "@gluestack-ui/core/toast/creator";
+import { OverlayProvider } from "@gluestack-ui/core/overlay/creator";
 
 export interface GluestackProviderProps {
   children: React.ReactNode;
-  mode?: 'light' | 'dark' | 'system';
+  mode?: "light" | "dark" | "system";
 }
 
 export function GluestackProvider({ children, mode }: GluestackProviderProps) {
@@ -23,22 +25,24 @@ export function GluestackProvider({ children, mode }: GluestackProviderProps) {
     }
   }, [activeMode, colorScheme, setColorScheme]);
 
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
 
-  const backgroundColor = isDark ? '#0B0F19' : '#F8FAFC';
+  const backgroundColor = isDark ? "#0B0F19" : "#F8FAFC";
 
   return (
     <SafeAreaProvider>
       <View
-        className={isDark ? 'dark' : ''}
+        className={isDark ? "dark" : ""}
         style={{ flex: 1, backgroundColor }}
       >
         <StatusBar
-          barStyle={isDark ? 'light-content' : 'dark-content'}
-          backgroundColor={isDark ? '#0B0F19' : '#F8FAFC'}
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={isDark ? "#0B0F19" : "#F8FAFC"}
           animated
         />
-        {children}
+        <OverlayProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </OverlayProvider>
       </View>
     </SafeAreaProvider>
   );
