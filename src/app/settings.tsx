@@ -95,7 +95,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-slate-50 dark:bg-[#0B0F19]"
+      className="flex-1 bg-slate-50 dark:bg-neocentra-bg-dark"
       edges={["top", "left", "right"]}
     >
       {/* Top Navigation Bar */}
@@ -201,7 +201,7 @@ export default function SettingsScreen() {
                   className={`p-4 rounded-2xl border mb-3 ${
                     isSelected
                       ? "bg-blue-50/80 dark:bg-blue-950/30 border-[#0066FF]"
-                      : "bg-white dark:bg-[#131B2E] border-slate-200/80 dark:border-slate-800"
+                      : "bg-white dark:bg-neocentra-bg-cardDark border-slate-200/80 dark:border-slate-800"
                   }`}
                 >
                   <View className="flex-row items-start justify-between">
@@ -351,7 +351,7 @@ export default function SettingsScreen() {
             Informasi Sistem & Penyimpanan
           </Text>
 
-          <Card variant="outlined" className="w-full">
+          <Card variant="default" className="w-full">
             <View className="flex-row items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
               <View className="flex-row items-center">
                 <HardDrive size={16} color="#64748B" className="mr-2.5" />

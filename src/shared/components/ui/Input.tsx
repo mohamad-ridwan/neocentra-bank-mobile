@@ -26,7 +26,7 @@ const UIInput = createInput({
 });
 
 const inputStyle = tva({
-  base: "w-full flex-row items-center rounded-xl border border-border bg-white dark:bg-card shadow-xs transition-[color,box-shadow] overflow-hidden data-[focus=true]:border-ring dark:data-[focus=true]:border-ring data-[invalid=true]:border-destructive/80 dark:data-[invalid=true]:border-destructive/80 data-[invalid=true]:bg-destructive/10 data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 px-3.5",
+  base: "w-full flex-row items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-neocentra-bg-cardDark shadow-xs transition-[color,box-shadow] overflow-hidden data-[focus=true]:border-[#0066FF] dark:data-[focus=true]:border-blue-500 data-[invalid=true]:border-rose-500 dark:data-[invalid=true]:border-rose-500 data-[invalid=true]:bg-rose-50/50 dark:data-[invalid=true]:bg-rose-950/20 data-[disabled=true]:pointer-events-none data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50 px-3.5",
   variants: {
     size: {
       xl: "h-13 px-4",
@@ -36,9 +36,9 @@ const inputStyle = tva({
     },
     variant: {
       underlined:
-        "rounded-none border-b border-t-0 border-l-0 border-r-0 border-border bg-transparent shadow-none px-0",
-      outline: "rounded-xl border border-border bg-white dark:bg-card",
-      rounded: "rounded-full border border-border bg-white dark:bg-card",
+        "rounded-none border-b border-t-0 border-l-0 border-r-0 border-slate-200 dark:border-slate-800 bg-transparent shadow-none px-0",
+      outline: "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-neocentra-bg-cardDark",
+      rounded: "rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-neocentra-bg-cardDark",
     },
   },
   defaultVariants: {
@@ -48,7 +48,7 @@ const inputStyle = tva({
 });
 
 const inputIconStyle = tva({
-  base: "justify-center items-center text-muted-foreground fill-none h-4 w-4",
+  base: "justify-center items-center text-slate-400 dark:text-slate-500 fill-none h-4 w-4",
 });
 
 const inputSlotStyle = tva({
@@ -56,7 +56,7 @@ const inputSlotStyle = tva({
 });
 
 const inputFieldStyle = tva({
-  base: "flex-1 text-foreground text-sm md:text-base py-1 h-full placeholder:text-muted-foreground web:outline-none ios:leading-[0px] web:cursor-text web:data-[disabled=true]:cursor-not-allowed",
+  base: "flex-1 text-slate-900 dark:text-white text-sm md:text-base py-1 h-full placeholder:text-slate-400 dark:placeholder:text-slate-500 web:outline-none ios:leading-[0px] web:cursor-text web:data-[disabled=true]:cursor-not-allowed",
   parentVariants: {
     size: {
       xl: "text-lg",
@@ -248,7 +248,7 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
         className={inputStyle({
           size,
           variant,
-          class: `${isFocused ? "border-primary dark:border-primary" : ""} ${className || ""}`,
+          class: `${isFocused ? "border-[#0066FF] dark:border-blue-500" : ""} ${className || ""}`,
         })}
         context={{ size, variant }}
       >
@@ -301,11 +301,11 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
       </UIInput>
 
       {error ? (
-        <RNText className="text-xs text-destructive font-medium mt-1 ml-1">
+        <RNText className="text-xs text-rose-500 dark:text-rose-400 font-medium mt-1 ml-1">
           {error}
         </RNText>
       ) : helperText ? (
-        <RNText className="text-xs text-muted-foreground mt-1 ml-1">
+        <RNText className="text-xs text-slate-500 dark:text-slate-400 mt-1 ml-1">
           {helperText}
         </RNText>
       ) : null}

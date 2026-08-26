@@ -52,7 +52,7 @@ export function RegisterScreen() {
 
           <Pressable
             onPress={() => router.push("/settings")}
-            className="w-9 h-9 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
+            className="w-9 h-9 rounded-xl bg-white dark:bg-neocentra-bg-cardDark border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
             hitSlop={8}
           >
             <Settings size={16} color={isDark ? "#94A3B8" : "#64748B"} />
@@ -154,7 +154,7 @@ export function RegisterScreen() {
         {/* Security Assurance Footer */}
         <View className="flex-row items-center justify-center mt-6">
           <ShieldCheck size={14} color="#10B981" className="mr-1.5" />
-          <Text className="text-xs text-slate-400 text-center">
+          <Text className="text-xs text-slate-400 dark:text-slate-500 text-center">
             Dilindungi Enkripsi Field-Level (FLE) & KMS Google Tink
           </Text>
         </View>

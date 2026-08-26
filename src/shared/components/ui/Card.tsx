@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text as RNText } from 'react-native';
 import { tva } from '@gluestack-ui/utils/nativewind-utils';
-import { withStyleContext, useStyleContext } from '@gluestack-ui/utils/nativewind-utils';
+import { withStyleContext } from '@gluestack-ui/utils/nativewind-utils';
 import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
 
 const SCOPE = 'CARD';
@@ -19,13 +19,13 @@ const cardStyle = tva({
     },
     variant: {
       default:
-        'bg-card border border-border/80 shadow-sm shadow-slate-200/50 dark:shadow-none',
+        'bg-white dark:bg-neocentra-bg-cardDark border border-slate-200/80 dark:border-slate-800 shadow-sm shadow-slate-200/50 dark:shadow-none',
       elevated:
-        'bg-card shadow-md shadow-slate-300/40 dark:shadow-black/50 border border-border/60',
-      outlined: 'bg-transparent border border-border',
+        'bg-white dark:bg-neocentra-bg-cardDark shadow-md shadow-slate-300/40 dark:shadow-black/50 border border-slate-200/80 dark:border-slate-800',
+      outlined: 'bg-transparent border border-slate-200 dark:border-slate-800',
       glass:
-        'bg-card/90 backdrop-blur-md border border-border/60 shadow-lg',
-      filled: 'bg-muted border-transparent',
+        'bg-white/90 dark:bg-neocentra-bg-cardDark/90 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 shadow-lg',
+      filled: 'bg-slate-100 dark:bg-slate-800/80 border-transparent',
     },
   },
   defaultVariants: {
@@ -66,7 +66,7 @@ const CardHeader = React.forwardRef<
   return (
     <View
       ref={ref}
-      className={`flex-row items-center justify-between pb-3 border-b border-border/60 mb-3 ${className || ''}`}
+      className={`flex-row items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3 ${className || ''}`}
       {...props}
     >
       {children}
@@ -100,7 +100,7 @@ const CardFooter = React.forwardRef<
   return (
     <View
       ref={ref}
-      className={`pt-3 border-t border-border/60 mt-3 flex-row items-center justify-between ${className || ''}`}
+      className={`pt-3 border-t border-slate-100 dark:border-slate-800 mt-3 flex-row items-center justify-between ${className || ''}`}
       {...props}
     >
       {children}
@@ -119,7 +119,7 @@ const CardTitle = React.forwardRef<
   return (
     <RNText
       ref={ref}
-      className={`text-base font-bold text-foreground tracking-tight ${className || ''}`}
+      className={`text-base font-bold text-slate-900 dark:text-white tracking-tight ${className || ''}`}
       {...props}
     >
       {children}
@@ -138,7 +138,7 @@ const CardDescription = React.forwardRef<
   return (
     <RNText
       ref={ref}
-      className={`text-xs text-muted-foreground mt-0.5 ${className || ''}`}
+      className={`text-xs text-slate-500 dark:text-slate-400 mt-0.5 ${className || ''}`}
       {...props}
     >
       {children}

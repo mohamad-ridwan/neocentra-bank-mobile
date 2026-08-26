@@ -5,7 +5,7 @@ import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import type { VariantProps } from "@gluestack-ui/utils/nativewind-utils";
 
 const headingStyle = tva({
-  base: "text-foreground tracking-tight",
+  base: "text-slate-900 dark:text-white tracking-tight",
   variants: {
     size: {
       "2xs": "text-xs font-bold",
@@ -31,7 +31,7 @@ const headingStyle = tva({
 });
 
 const textStyle = tva({
-  base: "text-foreground font-normal",
+  base: "text-slate-700 dark:text-slate-200 font-normal",
   variants: {
     size: {
       "2xs": "text-[10px]",
@@ -131,7 +131,7 @@ const Subheading = React.forwardRef<
   return (
     <RNText
       ref={ref}
-      className={`text-foreground/90 ${sizeClass} ${className || ""}`}
+      className={`text-slate-900 dark:text-white ${sizeClass} ${className || ""}`}
       {...props}
     />
   );
@@ -152,7 +152,7 @@ const Caption = React.forwardRef<
   return (
     <RNText
       ref={ref}
-      className={`text-muted-foreground font-medium ${sizeClass} ${className || ""}`}
+      className={`text-slate-500 dark:text-slate-400 font-medium ${sizeClass} ${className || ""}`}
       {...props}
     />
   );
@@ -168,7 +168,7 @@ const Label = React.forwardRef<React.ComponentRef<typeof RNText>, ILabelProps>(
     return (
       <RNText
         ref={ref}
-        className={`text-sm font-semibold text-foreground/90 dark:text-slate-300 mb-1.5 ${className || ""}`}
+        className={`text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5 ${className || ""}`}
         {...props}
       />
     );

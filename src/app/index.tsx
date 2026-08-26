@@ -53,7 +53,7 @@ export default function EntryScreen() {
   if (isAuthenticated && user) {
     return (
       <SafeAreaView
-        className="flex-1 bg-slate-50 dark:bg-[#0B0F19]"
+        className="flex-1 bg-slate-50 dark:bg-neocentra-bg-dark"
         edges={["top", "left", "right"]}
       >
         <ScrollView
@@ -82,13 +82,13 @@ export default function EntryScreen() {
             <View className="flex-row items-center gap-2">
               <Pressable
                 onPress={() => router.push("/settings")}
-                className="w-10 h-10 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
+                className="w-10 h-10 rounded-xl bg-white dark:bg-neocentra-bg-cardDark border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
                 hitSlop={8}
               >
                 <Settings size={18} color={isDark ? "#94A3B8" : "#64748B"} />
               </Pressable>
               <Pressable
-                className="w-10 h-10 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
+                className="w-10 h-10 rounded-xl bg-white dark:bg-neocentra-bg-cardDark border border-slate-200 dark:border-slate-800 items-center justify-center shadow-sm active:opacity-70"
                 hitSlop={8}
               >
                 <Bell size={18} color={isDark ? "#94A3B8" : "#64748B"} />
@@ -104,7 +104,7 @@ export default function EntryScreen() {
           </View>
 
           {/* Account Balance Card */}
-          <Card className="w-full bg-[#0A2540] dark:bg-[#0E1B33] border border-blue-900/50 dark:border-blue-800/40 p-6 rounded-3xl mb-6 shadow-xl">
+          <Card className="w-full bg-[#0A2540] dark:bg-neocentra-navy-dark border border-blue-900/50 dark:border-blue-800/40 p-6 rounded-3xl mb-6 shadow-xl">
             <View className="flex-row justify-between items-center mb-3">
               <View className="flex-row items-center">
                 <Landmark size={18} color="#60A5FA" className="mr-2" />
@@ -270,7 +270,7 @@ export default function EntryScreen() {
   // ----------------------------------------------------
   return (
     <SafeAreaView
-      className="flex-1 bg-slate-50 dark:bg-[#0B0F19]"
+      className="flex-1 bg-slate-50 dark:bg-neocentra-bg-dark"
       edges={["top", "left", "right"]}
     >
       <ScrollView
@@ -285,15 +285,6 @@ export default function EntryScreen() {
         {/* Top Header Bar with Settings Navigation */}
         <View className="flex-row items-center justify-between pt-2 pb-2">
           <View className="flex-row items-center">
-            {/* <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: "#10B981",
-                marginRight: 8,
-              }}
-            ></View> */}
             <Text className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               Neocentra Digital Bank
             </Text>
@@ -301,7 +292,7 @@ export default function EntryScreen() {
 
           <Pressable
             onPress={() => router.push("/settings")}
-            className="flex-row items-center px-3 py-2 rounded-xl bg-white dark:bg-[#131B2E] border border-slate-200 dark:border-slate-800 shadow-sm active:opacity-70"
+            className="flex-row items-center px-3 py-2 rounded-xl bg-white dark:bg-neocentra-bg-cardDark border border-slate-200 dark:border-slate-800 shadow-sm active:opacity-70"
             hitSlop={8}
           >
             <Settings

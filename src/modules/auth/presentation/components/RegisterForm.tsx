@@ -28,6 +28,7 @@ import {
   nonNumericRegex,
 } from "@/shared/utils/regex";
 import UseToast from "@/shared/hooks/UseToast";
+import { usePreventScreenCapture } from "expo-screen-capture";
 
 export interface RegisterFormProps {
   scrollRef?: React.RefObject<ScrollView | null>;
@@ -53,6 +54,8 @@ export function RegisterForm({
   onOpenTerms,
 }: RegisterFormProps) {
   const { handleToast } = UseToast();
+
+  usePreventScreenCapture();
 
   const handlePasteBlocked = () => {
     handleToast({
@@ -203,6 +206,13 @@ export function RegisterForm({
             error={errors.nik?.message}
             helperText={`${(value || "").length}/16 digit sesuai e-KTP`}
             leftIcon={CreditCard}
+            // non-clipboard & non-autofill fields
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
           />
         )}
       />
@@ -228,6 +238,13 @@ export function RegisterForm({
             onBlur={onBlur}
             error={errors.fullName?.message}
             leftIcon={UserIcon}
+            // non-clipboard & non-autofill fields
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
           />
         )}
       />
@@ -259,6 +276,9 @@ export function RegisterForm({
             textContentType="none"
             importantForAutofill="no"
             keyboardType="email-address"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
             error={errors.email?.message}
             leftIcon={Mail}
           />
@@ -287,6 +307,13 @@ export function RegisterForm({
             keyboardType="phone-pad"
             error={errors.phoneNumber?.message}
             leftIcon={Phone}
+            // non-clipboard & non-autofill fields
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
           />
         )}
       />
@@ -312,6 +339,13 @@ export function RegisterForm({
             onBlur={onBlur}
             error={errors.address?.message}
             leftIcon={MapPin}
+            // non-clipboard & non-autofill fields
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
           />
         )}
       />
@@ -338,6 +372,13 @@ export function RegisterForm({
             isPassword
             error={errors.password?.message}
             leftIcon={Lock}
+            // non-clipboard & non-autofill fields
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
           />
         )}
       />
@@ -382,6 +423,13 @@ export function RegisterForm({
             isPassword
             error={errors.confirmPassword?.message}
             leftIcon={Lock}
+            // non-clipboard & non-autofill fields
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
           />
         )}
       />

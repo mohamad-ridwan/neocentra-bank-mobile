@@ -32,7 +32,7 @@ export function GluestackProvider({ children, mode }: GluestackProviderProps) {
   return (
     <SafeAreaProvider>
       <View
-        className={isDark ? "dark" : ""}
+        // className={isDark ? "dark" : ""}
         style={{ flex: 1, backgroundColor }}
       >
         <StatusBar
