@@ -1,7 +1,7 @@
 if (__DEV__) {
   require("../../ReactotronConfig");
 }
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
