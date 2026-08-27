@@ -111,9 +111,27 @@ export function RegisterForm({
     }
   }, [allValues, errors, isDirty, isSubmitting]);
 
+  useEffect(() => {
+    if (__DEV__) {
+      return () => {
+        Reactotron.display({
+          name: "React Hook Form",
+          preview: "Form Values & State Update & unmount RegisterForm.tsx",
+          value: {
+            values: allValues,
+            errors: errors,
+            isDirty: isDirty,
+            isSubmitting: isSubmitting,
+          },
+        });
+      };
+    }
+  }, []);
+
   const registerMutation = useRegisterMutation({
     onSuccess: (data) => {
       onSuccess?.(data);
+      reset({});
     },
     onError: (err) => {
       handleToast({
@@ -150,7 +168,6 @@ export function RegisterForm({
    * Meneruskan data yang sudah divalidasi ke TanStack Query useMutation
    */
   const onSubmit = (data: RegisterFormData) => {
-    reset();
     registerMutation.mutate(data);
   };
 
