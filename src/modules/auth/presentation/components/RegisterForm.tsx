@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useForm, Controller, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +29,7 @@ import {
 } from "@/shared/utils/regex";
 import UseToast from "@/shared/hooks/UseToast";
 import useScreenCapture from "@/shared/hooks/useScreenCapture";
+import Reactotron from "reactotron-react-native";
 
 export interface RegisterFormProps {
   scrollRef?: React.RefObject<ScrollView | null>;
@@ -53,6 +54,8 @@ export function RegisterForm({
   onSuccess,
   onOpenTerms,
 }: RegisterFormProps) {
+  // Anti-Screenshot & App Switcher Masking
+  // MASVS-RESILIENCE
   useScreenCapture();
 
   const { handleToast } = UseToast();
@@ -74,7 +77,7 @@ export function RegisterForm({
     handleSubmit,
     watch,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -89,6 +92,24 @@ export function RegisterForm({
     },
     mode: "onBlur",
   });
+
+  const allValues = watch();
+
+  useEffect(() => {
+    if (__DEV__) {
+      // This pushes form state straight to your desktop debugger layout
+      Reactotron.display({
+        name: "React Hook Form",
+        preview: "Form Values & State Update",
+        value: {
+          values: allValues,
+          errors: errors,
+          isDirty: isDirty,
+          isSubmitting: isSubmitting,
+        },
+      });
+    }
+  }, [allValues, errors, isDirty, isSubmitting]);
 
   const registerMutation = useRegisterMutation({
     onSuccess: (data) => {
@@ -129,6 +150,7 @@ export function RegisterForm({
    * Meneruskan data yang sudah divalidasi ke TanStack Query useMutation
    */
   const onSubmit = (data: RegisterFormData) => {
+    reset();
     registerMutation.mutate(data);
   };
 

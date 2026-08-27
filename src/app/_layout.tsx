@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+if (__DEV__) {
+  require("../../ReactotronConfig");
+}
+import React, { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,6 +10,7 @@ import {
   configureReanimatedLogger,
   ReanimatedLogLevel,
 } from "react-native-reanimated";
+import Reactotron from "reactotron-react-native";
 import "@/shared/styles/global.css";
 
 // Configure Reanimated Logger to disable strict mode checks that conflict with NativeWind runtime
@@ -31,6 +35,13 @@ export default function RootLayout() {
         },
       }),
   );
+
+  useEffect(() => {
+    if (__DEV__) {
+      console.log("Mencoba kirim log ke Reactotron...");
+      Reactotron.log("Reactotron Berhasil Terhubung!");
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
