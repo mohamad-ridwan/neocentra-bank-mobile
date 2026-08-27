@@ -28,7 +28,7 @@ import {
   nonNumericRegex,
 } from "@/shared/utils/regex";
 import UseToast from "@/shared/hooks/UseToast";
-import useCaptureScreen from "@/shared/hooks/useCaptureScreen";
+import useScreenCapture from "@/shared/hooks/useScreenCapture";
 
 export interface RegisterFormProps {
   scrollRef?: React.RefObject<ScrollView | null>;
@@ -53,7 +53,7 @@ export function RegisterForm({
   onSuccess,
   onOpenTerms,
 }: RegisterFormProps) {
-  useCaptureScreen();
+  useScreenCapture();
 
   const { handleToast } = UseToast();
 

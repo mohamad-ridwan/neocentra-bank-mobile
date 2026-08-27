@@ -2,7 +2,7 @@ import * as ScreenCapture from "expo-screen-capture";
 import { useIsFocused } from "expo-router";
 import { useEffect } from "react";
 
-const useCaptureScreen = () => {
+const useScreenCapture = () => {
   const isFocused = useIsFocused();
   const screenCaptureKey = process.env.EXPO_PUBLIC_SCREEN_CAPTURE_KEY;
 
@@ -20,4 +20,4 @@ const useCaptureScreen = () => {
   }, [isFocused]);
 };
 
-export default useCaptureScreen;
+export default useScreenCapture;
