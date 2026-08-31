@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@craftzdog/react-native-buffer": "^6.1.2",
     "@expo/ui": "~57.0.11",
     "@gluestack-ui/core": "^5.0.15",
     "@gluestack-ui/utils": "^5.0.6",
@@ -34,6 +35,8 @@
     "react-native-gesture-handler": "~2.32.0",
     "react-native-mmkv": "^4.3.2",
     "react-native-nitro-modules": "^0.37.0",
+    "react-native-quick-base64": "^3.0.1",
+    "react-native-quick-crypto": "^1.1.7",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",

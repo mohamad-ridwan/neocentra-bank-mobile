@@ -1,6 +1,10 @@
 if (__DEV__) {
   require("../../ReactotronConfig");
 }
+import { install } from "react-native-quick-crypto";
+// Polyfill global.crypto for full compatibility
+install();
+
 import { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";

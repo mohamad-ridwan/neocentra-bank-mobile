@@ -3,7 +3,7 @@ import {
   AuthApi,
   RegisterResponse,
 } from "@/modules/auth/infrastructure/api/auth.api";
-import { RegisterFormData } from "@/modules/auth/domain/schemas/register.schema";
+import { RequestCustomerRegisterBinary } from "../../infrastructure/mappers/user.mapper";
 
 export function useRegisterMutation(options?: {
   onSuccess?: (data: RegisterResponse) => void;
@@ -13,7 +13,7 @@ export function useRegisterMutation(options?: {
 
   return useMutation({
     mutationKey: ["auth", "register"],
-    mutationFn: async (data: RegisterFormData) => {
+    mutationFn: async (data: RequestCustomerRegisterBinary) => {
       return await AuthApi.register(data);
     },
     onSuccess: (data: RegisterResponse) => {
