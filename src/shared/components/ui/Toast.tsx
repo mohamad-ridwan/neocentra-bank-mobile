@@ -142,7 +142,9 @@ const Toast = React.forwardRef<React.ComponentRef<typeof Root>, IToastProps>(
         <View className="flex-col gap-2">
           <View className="flex-row gap-2 justify-between items-center flex-1">
             <View className="flex-row items-center gap-2 mr-3 mt-0.5 shrink-0">
-              {getIcon()} {title ? <ToastTitle>{title}</ToastTitle> : null}
+              <RNText>
+                {getIcon()} {title ? <ToastTitle>{title}</ToastTitle> : null}
+              </RNText>
             </View>
 
             {onDismiss ? (

@@ -4,6 +4,10 @@ import { normalizePhoneNumber } from "@/shared/utils/formatters";
 import { User } from "@/modules/auth/domain/entities/user.entity";
 import { LoginFormData } from "@/modules/auth/domain/schemas/login.schema";
 import {
+  generateRequestSignature,
+  getDeviceSecurityMetadata,
+} from "../../security/requestSigner";
+import {
   BackendCustomerDTO,
   RequestCustomerRegisterBinary,
   UserMapper,
@@ -98,10 +102,23 @@ export class AuthApi {
   }
 
   /**
-   * Registers a new customer with idempotency protection using binary TLV payload
+   * Registers a new customer with bank-grade security headers & binary TLV payload
    */
   public static async register(data: Uint8Array): Promise<RegisterResponse> {
     const idempotencyKey = generateIdempotencyKey();
+    const timestamp = new Date().toISOString();
+    const nonce = generateIdempotencyKey();
+    const correlationId = `req-${generateIdempotencyKey()}`;
+    const deviceMeta = getDeviceSecurityMetadata();
+
+    const endpointPath = "/api/v1/customers/register";
+    const signature = generateRequestSignature(
+      "POST",
+      endpointPath,
+      data,
+      timestamp,
+      nonce,
+    );
 
     // Unpack and decrypt the binary payload for mock/fallback mapper contexts
     const decrypted = UserMapper.unpackAndDecryptRegister(data);
@@ -112,11 +129,24 @@ export class AuthApi {
         success: boolean;
         code: number;
         message: string;
-        data: RequestCustomerRegisterBinary;
-      }>("/api/v1/customers/register", data, {
+        data: BackendCustomerDTO;
+      }>(endpointPath, data, {
         headers: {
           "Content-Type": "application/octet-stream",
+          Accept: "application/json",
+          "X-Signature": signature,
+          "X-Timestamp": timestamp,
+          "X-Nonce": nonce,
+          "X-Key-Id": "KMS-LOCAL-KEY-V1",
+          "X-Device-Id": deviceMeta.deviceId,
+          "X-Device-Model": deviceMeta.deviceModel,
+          "X-Device-OS": deviceMeta.deviceOS,
+          "X-App-Version": deviceMeta.appVersion,
+          "X-App-Build": deviceMeta.appBuild,
+          "X-Channel-Id": deviceMeta.channelId,
+          "X-Correlation-Id": correlationId,
           "X-Idempotency-Key": idempotencyKey,
+          "Accept-Language": "id-ID",
         },
       });
 
