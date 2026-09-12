@@ -75,11 +75,13 @@ export function RegisterForm({
             leftIcon={CreditCard}
             // non-clipboard & non-autofill fields
             autoComplete="off"
+            autoCorrect={false}
             textContentType="none"
             importantForAutofill="no"
             contextMenuHidden={true}
             selectTextOnFocus={false}
             secureTextEntry={false}
+            spellCheck={false}
           />
         )}
       />
@@ -112,6 +114,8 @@ export function RegisterForm({
             contextMenuHidden={true}
             selectTextOnFocus={false}
             secureTextEntry={false}
+            spellCheck={false}
+            autoCorrect={false}
           />
         )}
       />
@@ -148,6 +152,7 @@ export function RegisterForm({
             secureTextEntry={false}
             error={errors.email?.message}
             leftIcon={Mail}
+            spellCheck={false}
           />
         )}
       />
@@ -197,7 +202,6 @@ export function RegisterForm({
             label="Alamat Domisili Lengkap"
             placeholder="Nama jalan, RT/RW, kelurahan, kota"
             value={value}
-            preventPaste={true}
             onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const sanitizedAddress = val.replace(allowedAddressChars, "");
@@ -229,7 +233,6 @@ export function RegisterForm({
             label="Password Akun Baru"
             placeholder="Minimal 12 karakter (huruf besar, angka)"
             value={value}
-            preventPaste={true}
             onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const cleanPassword = val.trim();
@@ -279,7 +282,6 @@ export function RegisterForm({
             label="Konfirmasi Password"
             placeholder="Ulangi kata sandi baru"
             value={value}
-            preventPaste={true}
             onPasteBlocked={handlePasteBlocked}
             onChangeText={(val) => {
               const cleanConfirm = val.trim();

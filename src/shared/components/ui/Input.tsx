@@ -7,6 +7,10 @@ import {
   TextInput,
   TextInputProps,
   Text as RNText,
+  Platform,
+  NativeModules,
+  DeviceEventEmitter,
+  findNodeHandle,
 } from "react-native";
 import { tva } from "@gluestack-ui/utils/nativewind-utils";
 import { withStyleContext } from "@gluestack-ui/utils/nativewind-utils";
@@ -37,8 +41,10 @@ const inputStyle = tva({
     variant: {
       underlined:
         "rounded-none border-b border-t-0 border-l-0 border-r-0 border-slate-200 dark:border-slate-800 bg-transparent shadow-none px-0",
-      outline: "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-neocentra-bg-cardDark",
-      rounded: "rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-neocentra-bg-cardDark",
+      outline:
+        "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-neocentra-bg-cardDark",
+      rounded:
+        "rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-neocentra-bg-cardDark",
     },
   },
   defaultVariants: {
@@ -67,6 +73,8 @@ const inputFieldStyle = tva({
   },
 });
 
+export type SanitizeInputType = boolean | "sql" | "alphanumeric" | "numeric";
+
 export type IInputProps = Omit<
   React.ComponentProps<typeof UIInput>,
   "context"
@@ -85,6 +93,7 @@ export type IInputProps = Omit<
     placeholderTextColor?: string;
     preventPaste?: boolean;
     onPasteBlocked?: () => void;
+    sanitizeInput?: SanitizeInputType;
     children?: React.ReactNode;
   };
 
@@ -102,6 +111,7 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
     placeholderTextColor,
     preventPaste = false,
     onPasteBlocked,
+    sanitizeInput = false,
 
     // Gluestack styling & state props
     size = "md",
@@ -119,6 +129,7 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
     // TextInput props to handle explicitly for paste prevention
     value,
     onChangeText,
+    onKeyPress,
     contextMenuHidden,
 
     // Children for compound component usage
@@ -133,22 +144,46 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Track timestamp ketukan sebelumnya secara murni sinkronus (0ms latency overhead)
+  const lastTypeTimeRef = React.useRef<number>(0);
+
   const lastValueRef = React.useRef<string>(value ? String(value) : "");
   React.useEffect(() => {
     lastValueRef.current = value ? String(value) : "";
   }, [value]);
 
   const handleTextChange = (val: string) => {
-    if (preventPaste) {
-      const prevVal = lastValueRef.current || "";
-      const diff = val.length - prevVal.length;
-      if (diff > 1) {
-        onPasteBlocked?.();
-        return;
+    const prevVal = lastValueRef.current || "";
+    const charDelta = val.length - prevVal.length;
+
+    // Deteksi Paste / Injeksi dari Clipboard Gboard:
+    // User yang mengetik manual HANYA menambahkan 1 karakter per sentuhan jari (charDelta <= 1).
+    // Jika user mengklik klip dari papan clipboard Gboard / menu paste, teks bertambah > 1 karakter sekaligus.
+    if (preventPaste && charDelta > 1) {
+      onPasteBlocked?.();
+      // Kembalikan tampilan input native ke nilai sebelumnya
+      inputRef.current?.setNativeProps?.({ text: prevVal });
+      return; // Tolak paste!
+    }
+
+    let sanitizedVal = val;
+    if (sanitizeInput) {
+      if (sanitizeInput === "numeric") {
+        sanitizedVal = val.replace(/[^0-9]/g, "");
+      } else if (sanitizeInput === "alphanumeric") {
+        sanitizedVal = val.replace(/[^a-zA-Z0-9]/g, "");
+      } else {
+        // Mode "sql" atau true: Mencegah SQL Injection & payload berbahaya
+        // Menghapus kutip tunggal, kutip ganda, semicolon, backslash, dan syntax komentar SQL (-- / /*)
+        sanitizedVal = val
+          .replace(/['";\\]/g, "")
+          .replace(/--/g, "")
+          .replace(/\/\*/g, "");
       }
     }
-    lastValueRef.current = val;
-    onChangeText?.(val);
+
+    lastValueRef.current = sanitizedVal;
+    onChangeText?.(sanitizedVal);
   };
 
   const hasError = Boolean(error) || isInvalid;
@@ -160,6 +195,33 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
 
   const containerRef = React.useRef<View>(null);
   const inputRef = React.useRef<TextInput>(null);
+
+  // Kunci Keamanan Native OS: Terapkan OnReceiveContentListener di level Android Native
+  React.useEffect(() => {
+    if (Platform.OS === "android" && preventPaste) {
+      const node = findNodeHandle(inputRef.current);
+      if (node && NativeModules.PreventPasteModule?.setPreventPaste) {
+        NativeModules.PreventPasteModule.setPreventPaste(node, true);
+      }
+
+      // Dengarkan event pemblokiran langsung dari sistem operasi Android
+      const subscription = DeviceEventEmitter.addListener(
+        "onNativePasteBlocked",
+        (blockedTag: number) => {
+          if (blockedTag === node) {
+            onPasteBlocked?.();
+          }
+        },
+      );
+
+      return () => {
+        if (node && NativeModules.PreventPasteModule?.setPreventPaste) {
+          NativeModules.PreventPasteModule.setPreventPaste(node, false);
+        }
+        subscription?.remove();
+      };
+    }
+  }, [preventPaste, onPasteBlocked]);
 
   React.useImperativeHandle(ref, () => ({
     focus: () => {
@@ -267,6 +329,7 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
           secureTextEntry={isSecure}
           value={value}
           onChangeText={handleTextChange}
+          onKeyPress={onKeyPress}
           contextMenuHidden={preventPaste || contextMenuHidden}
           onFocus={(e: any) => {
             setIsFocused(true);
