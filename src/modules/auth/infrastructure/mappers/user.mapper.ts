@@ -83,63 +83,75 @@ export class UserMapper {
   public static unpackAndDecryptRegister(
     data: Uint8Array,
   ): DecryptedRegisterPayload {
-    const buffer = Buffer.from(data);
-    let offset = 0;
-
-    let encryptedNik: Uint8Array | undefined;
-    let encryptedFullName: Uint8Array | undefined;
-    let encryptedEmail: Uint8Array | undefined;
-    let encryptedPhone: Uint8Array | undefined;
-    let encryptedAddress: Uint8Array | undefined;
-    let passwordRaw: string | undefined;
-
-    while (offset < buffer.length) {
-      if (offset + 3 > buffer.length) break; // Tag (1B) + Length (2B)
-      const tag = buffer.readUInt8(offset);
-      const length = buffer.readUInt16BE(offset + 1);
-      offset += 3;
-
-      if (offset + length > buffer.length) break;
-      const val = new Uint8Array(buffer.subarray(offset, offset + length));
-      offset += length;
-
-      switch (tag) {
-        case FIELD_TAG.NIK:
-          encryptedNik = val;
-          break;
-        case FIELD_TAG.FULL_NAME:
-          encryptedFullName = val;
-          break;
-        case FIELD_TAG.EMAIL:
-          encryptedEmail = val;
-          break;
-        case FIELD_TAG.PHONE_NUMBER:
-          encryptedPhone = val;
-          break;
-        case FIELD_TAG.ADDRESS:
-          encryptedAddress = val;
-          break;
-        case FIELD_TAG.PASSWORD_HASH:
-          passwordRaw = Buffer.from(val).toString("utf8");
-          break;
-      }
-    }
-
-    return {
-      nik: encryptedNik ? decryptPII(encryptedNik, AAD_CONTEXT.NIK) : "",
-      fullName: encryptedFullName
-        ? decryptPII(encryptedFullName, AAD_CONTEXT.FULL_NAME)
-        : "",
-      email: encryptedEmail
-        ? decryptPII(encryptedEmail, AAD_CONTEXT.EMAIL)
-        : "",
-      phoneNumber: encryptedPhone
-        ? decryptPII(encryptedPhone, AAD_CONTEXT.PHONE_NUMBER)
-        : "",
-      address: encryptedAddress
-        ? decryptPII(encryptedAddress, AAD_CONTEXT.ADDRESS)
-        : "",
-      password: passwordRaw,
+    const emptyResult: DecryptedRegisterPayload = {
+      nik: "",
+      fullName: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
     };
+
+    try {
+      const buffer = Buffer.from(data);
+      let offset = 0;
+
+      let encryptedNik: Uint8Array | undefined;
+      let encryptedFullName: Uint8Array | undefined;
+      let encryptedEmail: Uint8Array | undefined;
+      let encryptedPhone: Uint8Array | undefined;
+      let encryptedAddress: Uint8Array | undefined;
+      let passwordRaw: string | undefined;
+
+      while (offset < buffer.length) {
+        if (offset + 3 > buffer.length) break; // Tag (1B) + Length (2B)
+        const tag = buffer.readUInt8(offset);
+        const length = buffer.readUInt16BE(offset + 1);
+        offset += 3;
+
+        if (offset + length > buffer.length) break;
+        const val = new Uint8Array(buffer.subarray(offset, offset + length));
+        offset += length;
+
+        switch (tag) {
+          case FIELD_TAG.NIK:
+            encryptedNik = val;
+            break;
+          case FIELD_TAG.FULL_NAME:
+            encryptedFullName = val;
+            break;
+          case FIELD_TAG.EMAIL:
+            encryptedEmail = val;
+            break;
+          case FIELD_TAG.PHONE_NUMBER:
+            encryptedPhone = val;
+            break;
+          case FIELD_TAG.ADDRESS:
+            encryptedAddress = val;
+            break;
+          case FIELD_TAG.PASSWORD_HASH:
+            passwordRaw = Buffer.from(val).toString("utf8");
+            break;
+        }
+      }
+
+      return {
+        nik: encryptedNik ? decryptPII(encryptedNik, AAD_CONTEXT.NIK) : "",
+        fullName: encryptedFullName
+          ? decryptPII(encryptedFullName, AAD_CONTEXT.FULL_NAME)
+          : "",
+        email: encryptedEmail
+          ? decryptPII(encryptedEmail, AAD_CONTEXT.EMAIL)
+          : "",
+        phoneNumber: encryptedPhone
+          ? decryptPII(encryptedPhone, AAD_CONTEXT.PHONE_NUMBER)
+          : "",
+        address: encryptedAddress
+          ? decryptPII(encryptedAddress, AAD_CONTEXT.ADDRESS)
+          : "",
+        password: passwordRaw,
+      };
+    } catch {
+      return emptyResult;
+    }
   }
 }

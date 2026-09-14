@@ -11,9 +11,8 @@ import { RegisterResponse } from "@/modules/auth/infrastructure/api/auth.api";
 import UseToast from "@/shared/hooks/UseToast";
 import useScreenCapture from "@/shared/hooks/useScreenCapture";
 import Reactotron from "reactotron-react-native";
-import { encryptPII } from "@/shared/security/kmsEncryptor";
-import { AAD_CONTEXT } from "../../security/securityConstants";
-import { packToBinaryStream } from "../../security/binaryPacker";
+import { HybridCryptoService } from "@/shared/security/hybridCryptoService";
+import { normalizePhoneNumber } from "@/shared/utils/formatters";
 import { RequestCustomerRegisterBinary } from "../../infrastructure/mappers/user.mapper";
 
 export interface UseRegisterFormProps {
@@ -151,26 +150,20 @@ export function useRegisterForm({
    * Meneruskan data yang sudah divalidasi ke TanStack Query useMutation
    */
   const onSubmit = (data: RegisterFormData) => {
-    // enkripsi data customer sebelum dimasukkan ke mutation
-    // 1. Enkripsi masing-masing field PII dengan AAD context binding
-    const encryptedNik = encryptPII(data.nik, AAD_CONTEXT.NIK);
-    const encryptedFullName = encryptPII(data.fullName, AAD_CONTEXT.FULL_NAME);
-    const encryptedEmail = encryptPII(data.email, AAD_CONTEXT.EMAIL);
-    const encryptedPhone = encryptPII(
-      data.phoneNumber,
-      AAD_CONTEXT.PHONE_NUMBER,
-    );
-    const encryptedAddress = encryptPII(data.address, AAD_CONTEXT.ADDRESS);
-
-    // 2. Serialisasi ke raw binary TLV buffer
-    const binaryPayload: RequestCustomerRegisterBinary = packToBinaryStream({
-      encryptedNik,
-      encryptedFullName,
-      encryptedEmail,
-      encryptedPhone,
-      encryptedAddress,
-      passwordRaw: data.password,
+    // 1. Serialize data registrasi customer ke format JSON (normalisasi nomor telepon ke E.164)
+    const customerJSON = JSON.stringify({
+      nik: data.nik,
+      full_name: data.fullName,
+      email: data.email,
+      phone_number: normalizePhoneNumber(data.phoneNumber),
+      address: data.address,
+      password: data.password,
     });
+
+    // 2. Enkripsi hybrid Pola 1 (RSA-OAEP SHA-256 + AES-256-GCM)
+    const binaryPayload: RequestCustomerRegisterBinary =
+      HybridCryptoService.encryptPayload(customerJSON);
+
     registerMutation.mutate(binaryPayload);
   };
 
