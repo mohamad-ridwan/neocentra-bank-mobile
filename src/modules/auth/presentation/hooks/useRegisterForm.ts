@@ -13,7 +13,6 @@ import useScreenCapture from "@/shared/hooks/useScreenCapture";
 import Reactotron from "reactotron-react-native";
 import { HybridCryptoService } from "@/shared/security/hybridCryptoService";
 import { normalizePhoneNumber } from "@/shared/utils/formatters";
-import { RequestCustomerRegisterBinary } from "../../infrastructure/mappers/user.mapper";
 
 export interface UseRegisterFormProps {
   scrollRef?: React.RefObject<ScrollView | null>;
@@ -161,10 +160,14 @@ export function useRegisterForm({
     });
 
     // 2. Enkripsi hybrid Pola 1 (RSA-OAEP SHA-256 + AES-256-GCM)
-    const binaryPayload: RequestCustomerRegisterBinary =
-      HybridCryptoService.encryptPayload(customerJSON);
+    // Menghasilkan binary payload dan per-request sessionKey untuk dekripsi response transit (Opsi A)
+    const hybridPayload =
+      HybridCryptoService.encryptPayloadWithKey(customerJSON);
 
-    registerMutation.mutate(binaryPayload);
+    registerMutation.mutate({
+      ...hybridPayload,
+      fallbackEmail: data.email,
+    });
   };
 
   /**

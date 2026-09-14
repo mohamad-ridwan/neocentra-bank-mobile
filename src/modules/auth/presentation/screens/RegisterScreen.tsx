@@ -10,7 +10,6 @@ import {
 import { useRouter } from "expo-router";
 import { ArrowLeft, CheckCircle2, Clock, LogIn, Settings, ShieldCheck } from "lucide-react-native";
 import { Badge, Button, Card, Heading } from "@/shared/components/ui";
-import { maskNIK } from "@/shared/utils/formatters";
 import { AuthHeader } from "../components/AuthHeader";
 import { RegisterForm } from "../components/RegisterForm";
 import { RegisterResponse } from "@/modules/auth/infrastructure/api/auth.api";
@@ -69,8 +68,12 @@ export function RegisterScreen() {
             <Heading className="text-center text-2xl font-bold mb-2">
               Pendaftaran Berhasil!
             </Heading>
-            <Text className="text-center text-sm text-slate-500 dark:text-slate-400 max-w-[300px] mb-6">
-              Pengajuan pembukaan rekening Anda telah berhasil disimpan dan sedang dalam tahap verifikasi KYC.
+            <Text className="text-center text-sm text-slate-600 dark:text-slate-300 max-w-[320px] mb-6 leading-relaxed">
+              Cek email{" "}
+              <Text className="font-bold text-[#0066FF] dark:text-blue-400">
+                "{successData.email}"
+              </Text>{" "}
+              untuk melakukan verifikasi pendaftaran akun anda.
             </Text>
 
             <Card variant="elevated" className="w-full mb-6">
@@ -85,27 +88,9 @@ export function RegisterScreen() {
 
               <View className="space-y-2">
                 <View className="flex-row justify-between py-1">
-                  <Text className="text-xs text-slate-500 dark:text-slate-400">ID Nasabah</Text>
+                  <Text className="text-xs text-slate-500 dark:text-slate-400">Email Terdaftar</Text>
                   <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {successData.customerId}
-                  </Text>
-                </View>
-                <View className="flex-row justify-between py-1">
-                  <Text className="text-xs text-slate-500 dark:text-slate-400">Nama Lengkap</Text>
-                  <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {successData.user.fullName}
-                  </Text>
-                </View>
-                <View className="flex-row justify-between py-1">
-                  <Text className="text-xs text-slate-500 dark:text-slate-400">NIK Terdaftar</Text>
-                  <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {maskNIK(successData.user.nik)}
-                  </Text>
-                </View>
-                <View className="flex-row justify-between py-1">
-                  <Text className="text-xs text-slate-500 dark:text-slate-400">Email</Text>
-                  <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {successData.user.email}
+                    {successData.email}
                   </Text>
                 </View>
               </View>

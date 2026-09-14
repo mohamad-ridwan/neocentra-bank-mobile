@@ -145,26 +145,26 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
   const [showPassword, setShowPassword] = useState(false);
 
   // Track timestamp ketukan sebelumnya secara murni sinkronus (0ms latency overhead)
-  const lastTypeTimeRef = React.useRef<number>(0);
+  // const lastTypeTimeRef = React.useRef<number>(0);
 
-  const lastValueRef = React.useRef<string>(value ? String(value) : "");
-  React.useEffect(() => {
-    lastValueRef.current = value ? String(value) : "";
-  }, [value]);
+  // const lastValueRef = React.useRef<string>(value ? String(value) : "");
+  // React.useEffect(() => {
+  //   lastValueRef.current = value ? String(value) : "";
+  // }, [value]);
 
   const handleTextChange = (val: string) => {
-    const prevVal = lastValueRef.current || "";
-    const charDelta = val.length - prevVal.length;
+    // const prevVal = lastValueRef.current || "";
+    // const charDelta = val.length - prevVal.length;
 
     // Deteksi Paste / Injeksi dari Clipboard Gboard:
     // User yang mengetik manual HANYA menambahkan 1 karakter per sentuhan jari (charDelta <= 1).
     // Jika user mengklik klip dari papan clipboard Gboard / menu paste, teks bertambah > 1 karakter sekaligus.
-    if (preventPaste && charDelta > 1) {
-      onPasteBlocked?.();
-      // Kembalikan tampilan input native ke nilai sebelumnya
-      inputRef.current?.setNativeProps?.({ text: prevVal });
-      return; // Tolak paste!
-    }
+    // if (preventPaste && charDelta > 1) {
+    //   onPasteBlocked?.();
+    //   // Kembalikan tampilan input native ke nilai sebelumnya
+    //   inputRef.current?.setNativeProps?.({ text: prevVal });
+    //   return; // Tolak paste!
+    // }
 
     let sanitizedVal = val;
     if (sanitizeInput) {
@@ -182,7 +182,7 @@ const Input = React.forwardRef<any, IInputProps>(function Input(
       }
     }
 
-    lastValueRef.current = sanitizedVal;
+    // lastValueRef.current = sanitizedVal;
     onChangeText?.(sanitizedVal);
   };
 

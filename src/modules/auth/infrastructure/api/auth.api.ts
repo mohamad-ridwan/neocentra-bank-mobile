@@ -1,6 +1,5 @@
 import { api } from "@/shared/infrastructure/http-client";
 import { generateIdempotencyKey } from "@/shared/utils/idempotency";
-import { normalizePhoneNumber } from "@/shared/utils/formatters";
 import { User } from "@/modules/auth/domain/entities/user.entity";
 import { LoginFormData } from "@/modules/auth/domain/schemas/login.schema";
 import {
@@ -10,8 +9,10 @@ import {
 import {
   BackendCustomerDTO,
   RequestCustomerRegisterBinary,
+  RequestCustomerRegisterPayload,
   UserMapper,
 } from "../mappers/user.mapper";
+import { HybridCryptoService } from "@/shared/security/hybridCryptoService";
 
 export interface LoginResponse {
   user: User;
@@ -20,9 +21,8 @@ export interface LoginResponse {
 }
 
 export interface RegisterResponse {
-  user: User;
+  email: string;
   message: string;
-  customerId: string;
 }
 
 export class AuthApi {
@@ -102,9 +102,24 @@ export class AuthApi {
   }
 
   /**
-   * Registers a new customer with bank-grade security headers & binary TLV payload
+   * Registers a new customer with bank-grade security headers & binary hybrid payload
    */
-  public static async register(data: Uint8Array): Promise<RegisterResponse> {
+  public static async register(
+    data: RequestCustomerRegisterBinary,
+  ): Promise<RegisterResponse> {
+    const rawBinary =
+      data instanceof Uint8Array
+        ? data
+        : (data as RequestCustomerRegisterPayload).binaryPayload;
+    const sessionKey =
+      data instanceof Uint8Array
+        ? undefined
+        : (data as RequestCustomerRegisterPayload).sessionKey;
+    const fallbackEmail =
+      data instanceof Uint8Array
+        ? undefined
+        : (data as RequestCustomerRegisterPayload).fallbackEmail;
+
     const idempotencyKey = generateIdempotencyKey();
     const timestamp = new Date().toISOString();
     const nonce = generateIdempotencyKey();
@@ -115,22 +130,20 @@ export class AuthApi {
     const signature = generateRequestSignature(
       "POST",
       endpointPath,
-      data,
+      rawBinary,
       timestamp,
       nonce,
     );
-
-    // Unpack and decrypt the binary payload for mock/fallback mapper contexts
-    const decrypted = UserMapper.unpackAndDecryptRegister(data);
-    const normalizedPhone = normalizePhoneNumber(decrypted.phoneNumber);
 
     try {
       const response = await api.post<{
         success: boolean;
         code: number;
         message: string;
-        data: BackendCustomerDTO;
-      }>(endpointPath, data, {
+        data: {
+          email: string;
+        };
+      }>(endpointPath, rawBinary, {
         headers: {
           "Content-Type": "application/octet-stream",
           Accept: "application/json",
@@ -150,49 +163,43 @@ export class AuthApi {
         },
       });
 
-      const rawData = response.data.data || {};
-      const user = UserMapper.toDomain(rawData, {
-        nik: decrypted.nik,
-        fullName: decrypted.fullName,
-        email: decrypted.email,
-        phoneNumber: normalizedPhone,
-        address: decrypted.address,
-        status: "PENDING_VERIFICATION",
-      });
+      const encryptedEmail = response.data?.data?.email;
+      let decryptedEmail = "";
+
+      if (encryptedEmail && sessionKey) {
+        try {
+          // Opsi A: Dekripsi response transit menggunakan ephemeral sessionKey
+          decryptedEmail = HybridCryptoService.decryptTransitResponse(
+            encryptedEmail,
+            sessionKey,
+          );
+        } catch (decryptErr) {
+          console.warn(
+            "[AuthApi.register] Gagal mendekripsi transit response:",
+            decryptErr,
+          );
+          decryptedEmail = "";
+        }
+      }
 
       return {
-        user,
+        email: decryptedEmail || fallbackEmail || "nasabah@neocentra.bank",
         message:
           response.data.message ||
-          "Pendaftaran berhasil! Akun Anda sedang dalam verifikasi.",
-        customerId: user.id,
+          "Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi.",
       };
     } catch (err: any) {
-      // In prototype / offline mode, gracefully provide registered domain model
+      // In prototype / offline mode, gracefully provide fallback
       if (
         err.message &&
         (err.message.includes("Network Error") ||
           err.message.includes("Gagal terhubung"))
       ) {
         await new Promise((r) => setTimeout(r, 700));
-        const mockUser = UserMapper.toDomain(
-          {},
-          {
-            id: `cust_${Date.now()}`,
-            nik: decrypted.nik,
-            fullName: decrypted.fullName,
-            email: decrypted.email,
-            phoneNumber: normalizedPhone,
-            address: decrypted.address,
-            status: "PENDING_VERIFICATION",
-          },
-        );
-
         return {
-          user: mockUser,
+          email: fallbackEmail || "nasabah@neocentra.bank",
           message:
-            "Pendaftaran berhasil! Data rekening Anda dalam tahap verifikasi KYC (Demo Mode).",
-          customerId: mockUser.id,
+            "Pendaftaran berhasil! Cek email untuk verifikasi pendaftaran akun anda (Demo Mode).",
         };
       }
       throw err;

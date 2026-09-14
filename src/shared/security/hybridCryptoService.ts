@@ -27,15 +27,26 @@ export const HYBRID_CONSTANTS = {
   MIN_TRANSIT_PAYLOAD_SIZE: 284,
 } as const;
 
+export interface HybridEncryptResult {
+  binaryPayload: Uint8Array;
+  sessionKey: Uint8Array; // Ephemeral 32-byte session key for decrypting transit response
+}
+
 export class HybridCryptoService {
   /**
    * Enkripsi payload plaintext (JSON string atau Uint8Array) menggunakan
    * Hybrid Encryption Pola 1:
    * [ 256-Byte RSA-OAEP Encrypted Key ] + [ 12-Byte IV ] + [ Ciphertext ] + [ 16-Byte Auth Tag ]
+   * Mengembalikan binary payload beserta ephemeral sessionKey untuk mendekripsi respons transit.
    */
-  public static encryptPayload(data: string | Uint8Array): Uint8Array {
+  public static encryptPayloadWithKey(
+    data: string | Uint8Array,
+  ): HybridEncryptResult {
     if (!data || data.length === 0) {
-      return new Uint8Array(0);
+      return {
+        binaryPayload: new Uint8Array(0),
+        sessionKey: new Uint8Array(0),
+      };
     }
 
     const pubKeyPEM = getServerPublicKey();
@@ -78,6 +89,73 @@ export class HybridCryptoService {
       authTag,
     ]);
 
-    return new Uint8Array(finalBuffer);
+    return {
+      binaryPayload: new Uint8Array(finalBuffer),
+      sessionKey: new Uint8Array(sessionKey),
+    };
+  }
+
+  /**
+   * Helper kompatibilitas lama yang mengembalikan hanya Uint8Array
+   */
+  public static encryptPayload(data: string | Uint8Array): Uint8Array {
+    return this.encryptPayloadWithKey(data).binaryPayload;
+  }
+
+  /**
+   * Mendekripsi respons transit dari backend (Opsi A: Per-Request Shared Secret)
+   * Format input data: [ 12-Byte IV ] + [ Ciphertext ] + [ 16-Byte Tag ]
+   * Mendukung input berupa string Base64 (misal dari response JSON) maupun raw binary Uint8Array.
+   */
+  public static decryptTransitResponse(
+    data: string | Uint8Array,
+    sessionKey: Uint8Array,
+  ): string {
+    if (!data || !sessionKey || sessionKey.length !== 32) {
+      return "";
+    }
+
+    // Konversi input ke Buffer
+    const buffer =
+      typeof data === "string"
+        ? Buffer.from(data, "base64")
+        : Buffer.from(data);
+
+    // Minimum wire size: 12B IV + 16B Tag = 28 Bytes
+    const minSize =
+      HYBRID_CONSTANTS.GCM_NONCE_LENGTH + HYBRID_CONSTANTS.GCM_TAG_LENGTH;
+    if (buffer.length < minSize) {
+      throw new Error(
+        `SECURITY_ERROR: Transit response ciphertext is too short (got ${buffer.length}, min ${minSize})`,
+      );
+    }
+
+    // Ekstrak IV (12B pertama), Auth Tag (16B terakhir), dan Ciphertext (tengah)
+    // Bungkus eksplisit ke Buffer.from untuk memastikan kompatibilitas penuh dengan C++ quick-crypto binding
+    const iv = Buffer.from(buffer.subarray(0, HYBRID_CONSTANTS.GCM_NONCE_LENGTH));
+    const authTag = Buffer.from(
+      buffer.subarray(buffer.length - HYBRID_CONSTANTS.GCM_TAG_LENGTH),
+    );
+    const ciphertext = Buffer.from(
+      buffer.subarray(
+        HYBRID_CONSTANTS.GCM_NONCE_LENGTH,
+        buffer.length - HYBRID_CONSTANTS.GCM_TAG_LENGTH,
+      ),
+    );
+    const keyBuf = Buffer.from(sessionKey);
+
+    const decipher = crypto.createDecipheriv(
+      "aes-256-gcm",
+      keyBuf,
+      iv,
+    );
+    decipher.setAuthTag(authTag);
+
+    const decrypted = Buffer.concat([
+      decipher.update(ciphertext),
+      decipher.final(),
+    ]);
+
+    return decrypted.toString("utf8");
   }
 }

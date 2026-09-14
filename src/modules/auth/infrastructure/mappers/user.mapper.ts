@@ -24,7 +24,15 @@ export interface BackendCustomerDTO {
   createdAt?: string;
 }
 
-export type RequestCustomerRegisterBinary = Uint8Array<ArrayBufferLike>;
+export interface RequestCustomerRegisterPayload {
+  binaryPayload: Uint8Array;
+  sessionKey: Uint8Array;
+  fallbackEmail?: string;
+}
+
+export type RequestCustomerRegisterBinary =
+  | Uint8Array<ArrayBufferLike>
+  | RequestCustomerRegisterPayload;
 
 export interface DecryptedRegisterPayload {
   nik: string;

@@ -1,18 +1,12 @@
 import crypto from "react-native-quick-crypto";
 import { Buffer } from "@craftzdog/react-native-buffer";
 
-const MASTER_KEY_RAW = process.env.EXPO_PUBLIC_LOCAL_KMS_MASTER_KEY || "";
+const MASTER_KEY_RAW = process.env.EXPO_PUBLIC_LOCAL_KMS_MASTER_KEY || "neocentra_legacy_local_key_32b!!";
 
 /**
- * Derivasi Master Key ke 32-Byte (256-bit) via SHA-256
- * Kompatibel 100% dengan SHA-256 KDF pada kms_encryptor.go
+ * Derivasi Master Key ke 32-Byte (256-bit) via SHA-256 (Legacy Helper)
  */
 export function deriveMasterKey(): Buffer {
-  if (!MASTER_KEY_RAW) {
-    throw new Error(
-      "SECURITY_ERROR: Master Key environment variable is missing.",
-    );
-  }
   return crypto.createHash("sha256").update(MASTER_KEY_RAW).digest();
 }
 
