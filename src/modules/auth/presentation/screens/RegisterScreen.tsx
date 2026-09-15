@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,21 +8,29 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { ArrowLeft, CheckCircle2, Clock, LogIn, Settings, ShieldCheck } from "lucide-react-native";
-import { Badge, Button, Card, Heading } from "@/shared/components/ui";
+import { ArrowLeft, Settings, ShieldCheck } from "lucide-react-native";
 import { AuthHeader } from "../components/AuthHeader";
 import { RegisterForm } from "../components/RegisterForm";
 import { RegisterResponse } from "@/modules/auth/infrastructure/api/auth.api";
 import { useColorScheme } from "@/shared/hooks/useColorScheme";
+import { useVerificationStore } from "@/modules/auth/application/store/useVerificationStore";
 
 export function RegisterScreen() {
   const router = useRouter();
   const { isDark } = useColorScheme();
-  const [successData, setSuccessData] = useState<RegisterResponse | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const setVerificationSession = useVerificationStore(
+    (state) => state.setVerificationSession,
+  );
 
   const handleRegisterSuccess = (data: RegisterResponse) => {
-    setSuccessData(data);
+    // Simpan masked email dan verificationToken ke global state
+    setVerificationSession({
+      email: data.email,
+      verificationToken: data.verificationToken,
+    });
+    // Direct ke route verification
+    router.push("/(auth)/verification");
   };
 
   return (
@@ -58,83 +66,34 @@ export function RegisterScreen() {
           </Pressable>
         </View>
 
-        {successData ? (
-          /* Registration Success State Card */
-          <View className="items-center py-6">
-            <View className="w-20 h-20 rounded-full bg-emerald-50 dark:bg-emerald-950/40 items-center justify-center mb-4 border border-emerald-200 dark:border-emerald-800 shadow-lg">
-              <CheckCircle2 size={44} color="#10B981" />
-            </View>
+        {/* Registration Form View */}
+        <AuthHeader
+          title="Buka Rekening Baru"
+          subtitle="Lengkapi data identitas resmi sesuai e-KTP untuk memulai perbankan digital Neocentra."
+          badgeText="Proses Online Cepat & Aman"
+        />
 
-            <Heading className="text-center text-2xl font-bold mb-2">
-              Pendaftaran Berhasil!
-            </Heading>
-            <Text className="text-center text-sm text-slate-600 dark:text-slate-300 max-w-[320px] mb-6 leading-relaxed">
-              Cek email{" "}
-              <Text className="font-bold text-[#0066FF] dark:text-blue-400">
-                "{successData.email}"
-              </Text>{" "}
-              untuk melakukan verifikasi pendaftaran akun anda.
+        <RegisterForm
+          scrollRef={scrollRef}
+          onSuccess={handleRegisterSuccess}
+          onOpenTerms={() => {
+            alert(
+              "Syarat dan Ketentuan Nasabah Neocentra Bank berlaku sesuai standar regulasi BI & OJK.",
+            );
+          }}
+        />
+
+        {/* Login Navigation Footer */}
+        <View className="flex-row items-center justify-center pt-2">
+          <Text className="text-sm text-slate-600 dark:text-slate-400">
+            Sudah memiliki akun?{" "}
+          </Text>
+          <Pressable onPress={() => router.push("/(auth)/login")}>
+            <Text className="text-sm text-[#0066FF] dark:text-blue-400 font-bold">
+              Masuk Sekarang
             </Text>
-
-            <Card variant="elevated" className="w-full mb-6">
-              <View className="flex-row items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
-                <Text className="text-xs text-slate-500 dark:text-slate-400">Status Akun</Text>
-                <Badge
-                  label="MENUNGGU VERIFIKASI"
-                  variant="warning"
-                  icon={Clock}
-                />
-              </View>
-
-              <View className="space-y-2">
-                <View className="flex-row justify-between py-1">
-                  <Text className="text-xs text-slate-500 dark:text-slate-400">Email Terdaftar</Text>
-                  <Text className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    {successData.email}
-                  </Text>
-                </View>
-              </View>
-            </Card>
-
-            <Button
-              title="Masuk ke Akun Sekarang"
-              variant="primary"
-              size="lg"
-              onPress={() => router.replace("/(auth)/login")}
-              leftIcon={LogIn}
-              className="w-full mb-3"
-            />
-          </View>
-        ) : (
-          /* Registration Form View */
-          <>
-            <AuthHeader
-              title="Buka Rekening Baru"
-              subtitle="Lengkapi data identitas resmi sesuai e-KTP untuk memulai perbankan digital Neocentra."
-              badgeText="Proses Online Cepat & Aman"
-            />
-
-            <RegisterForm
-              scrollRef={scrollRef}
-              onSuccess={handleRegisterSuccess}
-              onOpenTerms={() => {
-                alert("Syarat dan Ketentuan Nasabah Neocentra Bank berlaku sesuai standar regulasi BI & OJK.");
-              }}
-            />
-
-            {/* Login Navigation Footer */}
-            <View className="flex-row items-center justify-center pt-2">
-              <Text className="text-sm text-slate-600 dark:text-slate-400">
-                Sudah memiliki akun?{" "}
-              </Text>
-              <Pressable onPress={() => router.push("/(auth)/login")}>
-                <Text className="text-sm text-[#0066FF] dark:text-blue-400 font-bold">
-                  Masuk Sekarang
-                </Text>
-              </Pressable>
-            </View>
-          </>
-        )}
+          </Pressable>
+        </View>
 
         {/* Security Assurance Footer */}
         <View className="flex-row items-center justify-center mt-6">

@@ -12,7 +12,6 @@ import {
   RequestCustomerRegisterPayload,
   UserMapper,
 } from "../mappers/user.mapper";
-import { HybridCryptoService } from "@/shared/security/hybridCryptoService";
 
 export interface LoginResponse {
   user: User;
@@ -22,6 +21,17 @@ export interface LoginResponse {
 
 export interface RegisterResponse {
   email: string;
+  verificationToken: string;
+  message: string;
+}
+
+export interface VerifyCustomerPayload {
+  verificationToken: string;
+  code: string;
+}
+
+export interface VerifyCustomerResponse {
+  success: boolean;
   message: string;
 }
 
@@ -50,51 +60,53 @@ export class AuthApi {
         response.data.token ||
         response.data.access_token ||
         resData?.token ||
-        "mock_jwt_token_neocentra";
-      const rawUser = resData?.user || {};
+        "mock_jwt_token_neocentra_2026";
 
-      const user = UserMapper.toDomain(rawUser, {
+      const rawUser = resData?.user || {
+        id: "cust_demo_01",
+        nik: "3201010101990001",
+        full_name: "Budi Santoso",
         email: data.identifier.includes("@")
           ? data.identifier
-          : "nasabah@neocentra.bank",
-        fullName: "Ahmad Fauzi",
+          : "budi.santoso@neocentra.bank",
+        phone_number: "+6281298765432",
         status: "ACTIVE",
-        balance: 45750000,
-        accountNumber: "8809 3421 9870",
-      });
+        balance: 24500000,
+        account_number: "8801 2345 6789",
+        created_at: new Date().toISOString(),
+      };
+
+      const user = UserMapper.toDomain(rawUser);
 
       return {
         user,
         token,
-        message:
-          response.data.message || "Login berhasil! Selamat datang kembali.",
+        message: response.data.message || "Login berhasil!",
       };
     } catch (err: any) {
-      // In offline / prototype mode without running backend, simulate authenticated user session
       if (
         err.message &&
         (err.message.includes("Network Error") ||
           err.message.includes("Gagal terhubung"))
       ) {
-        // Mock success fallback for offline testing
         await new Promise((r) => setTimeout(r, 600));
-        const mockUser = UserMapper.toDomain(
-          {},
-          {
-            email: data.identifier.includes("@")
-              ? data.identifier
-              : "ahmad.fauzi@neocentra.bank",
-            fullName: "Ahmad Fauzi (Demo User)",
-            status: "ACTIVE",
-            balance: 45750000,
-            accountNumber: "8809 3421 9870",
-          },
-        );
-
+        const demoUser: User = {
+          id: "cust_demo_offline",
+          nik: "3201010101990001",
+          fullName: "Budi Santoso (Demo Offline)",
+          email: data.identifier.includes("@")
+            ? data.identifier
+            : "budi.santoso@neocentra.bank",
+          phoneNumber: "+6281298765432",
+          status: "ACTIVE",
+          balance: 15250000,
+          accountNumber: "8801 9999 8888",
+          createdAt: new Date().toISOString(),
+        };
         return {
-          user: mockUser,
-          token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_session_token",
-          message: "Login berhasil (Demo Mode)",
+          user: demoUser,
+          token: "mock_jwt_token_offline_2026",
+          message: "Mode Demo Offline: Login Berhasil",
         };
       }
       throw err;
@@ -102,51 +114,40 @@ export class AuthApi {
   }
 
   /**
-   * Registers a new customer with bank-grade security headers & binary hybrid payload
+   * Registers a new customer
    */
   public static async register(
     data: RequestCustomerRegisterBinary,
   ): Promise<RegisterResponse> {
-    const rawBinary =
-      data instanceof Uint8Array
-        ? data
-        : (data as RequestCustomerRegisterPayload).binaryPayload;
-    const sessionKey =
-      data instanceof Uint8Array
-        ? undefined
-        : (data as RequestCustomerRegisterPayload).sessionKey;
-    const fallbackEmail =
-      data instanceof Uint8Array
-        ? undefined
-        : (data as RequestCustomerRegisterPayload).fallbackEmail;
-
-    const idempotencyKey = generateIdempotencyKey();
-    const timestamp = new Date().toISOString();
-    const nonce = generateIdempotencyKey();
-    const correlationId = `req-${generateIdempotencyKey()}`;
-    const deviceMeta = getDeviceSecurityMetadata();
-
-    const endpointPath = "/api/v1/customers/register";
-    const signature = generateRequestSignature(
-      "POST",
-      endpointPath,
-      rawBinary,
-      timestamp,
-      nonce,
-    );
+    const isStructured = "binaryPayload" in data;
+    const binaryPayload = isStructured ? data.binaryPayload : data;
+    const fallbackEmail = isStructured ? data.fallbackEmail : undefined;
 
     try {
+      const timestamp = new Date().toISOString();
+      const nonce = Math.random().toString(36).substring(2, 18);
+      const idempotencyKey = generateIdempotencyKey();
+      const correlationId = "corr_" + Math.random().toString(36).substring(2, 10);
+      const deviceMeta = getDeviceSecurityMetadata();
+
+      const signature = generateRequestSignature(
+        "POST",
+        "/api/v1/customers/register",
+        binaryPayload,
+        timestamp,
+        nonce,
+      );
+
       const response = await api.post<{
         success: boolean;
-        code: number;
-        message: string;
-        data: {
-          email: string;
+        message?: string;
+        data?: {
+          email?: string;
+          verificationToken?: string;
         };
-      }>(endpointPath, rawBinary, {
+      }>("/api/v1/customers/register", binaryPayload, {
         headers: {
           "Content-Type": "application/octet-stream",
-          Accept: "application/json",
           "X-Signature": signature,
           "X-Timestamp": timestamp,
           "X-Nonce": nonce,
@@ -163,33 +164,22 @@ export class AuthApi {
         },
       });
 
-      const encryptedEmail = response.data?.data?.email;
-      let decryptedEmail = "";
-
-      if (encryptedEmail && sessionKey) {
-        try {
-          // Opsi A: Dekripsi response transit menggunakan ephemeral sessionKey
-          decryptedEmail = HybridCryptoService.decryptTransitResponse(
-            encryptedEmail,
-            sessionKey,
-          );
-        } catch (decryptErr) {
-          console.warn(
-            "[AuthApi.register] Gagal mendekripsi transit response:",
-            decryptErr,
-          );
-          decryptedEmail = "";
-        }
-      }
+      const maskedEmail =
+        response.data?.data?.email ||
+        (fallbackEmail
+          ? fallbackEmail.replace(/^(.)(.*)(.@.*)$/, "$1***$3")
+          : "u***r@domain.com");
+      const verificationToken =
+        response.data?.data?.verificationToken || "mock_verification_jwt_token";
 
       return {
-        email: decryptedEmail || fallbackEmail || "nasabah@neocentra.bank",
+        email: maskedEmail,
+        verificationToken,
         message:
           response.data.message ||
           "Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi.",
       };
     } catch (err: any) {
-      // In prototype / offline mode, gracefully provide fallback
       if (
         err.message &&
         (err.message.includes("Network Error") ||
@@ -197,9 +187,40 @@ export class AuthApi {
       ) {
         await new Promise((r) => setTimeout(r, 700));
         return {
-          email: fallbackEmail || "nasabah@neocentra.bank",
+          email: fallbackEmail
+            ? fallbackEmail.replace(/^(.)(.*)(.@.*)$/, "$1***$3")
+            : "b***o@neocentra.bank",
+          verificationToken: "mock_demo_verification_token",
           message:
             "Pendaftaran berhasil! Cek email untuk verifikasi pendaftaran akun anda (Demo Mode).",
+        };
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Verifies customer account using 5-digit OTP and verificationToken
+   */
+  public static async verifyAccount(
+    payload: VerifyCustomerPayload,
+  ): Promise<VerifyCustomerResponse> {
+    try {
+      const response = await api.post<VerifyCustomerResponse>(
+        "/api/v1/customers/verification",
+        payload,
+      );
+      return response.data;
+    } catch (err: any) {
+      if (
+        err.message &&
+        (err.message.includes("Network Error") ||
+          err.message.includes("Gagal terhubung"))
+      ) {
+        await new Promise((r) => setTimeout(r, 500));
+        return {
+          success: true,
+          message: "Akun anda berhasil di verifikasi (Demo Mode)",
         };
       }
       throw err;
