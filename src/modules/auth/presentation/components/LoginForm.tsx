@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { Check, KeyRound, Lock, LogIn, Mail, Sparkles } from "lucide-react-native";
+import { Check, Lock, LogIn, Mail, Sparkles } from "lucide-react-native";
 import { Button, Card, Input, Toast } from "@/shared/components/ui";
-import { loginSchema } from "@/modules/auth/domain/schemas/login.schema";
-import { useLoginMutation } from "@/modules/auth/application/queries/useLoginMutation";
-import { useAuthStore } from "@/modules/auth/application/store/useAuthStore";
+import { useLoginForm } from "@/modules/auth/presentation/hooks/useLoginForm";
 
 export interface LoginFormProps {
   onSuccess?: () => void;
@@ -12,53 +10,20 @@ export interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
-  const rememberedIdentifier = useAuthStore((state) => state.rememberedIdentifier);
-
-  const [identifier, setIdentifier] = useState(rememberedIdentifier || "nasabah@neocentra.bank");
-  const [password, setPassword] = useState("Password123#");
-  const [rememberMe, setRememberMe] = useState(true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const loginMutation = useLoginMutation({
-    onSuccess: () => {
-      setErrorMessage(null);
-      onSuccess?.();
-    },
-    onError: (err) => {
-      setErrorMessage(err.message || "Gagal masuk. Periksa kembali data akun Anda.");
-    },
-  });
-
-  const handleValidationAndSubmit = () => {
-    setErrorMessage(null);
-    const result = loginSchema.safeParse({
-      identifier: identifier.trim(),
-      password: password.trim(),
-      rememberMe,
-    });
-
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((err) => {
-        if (err.path[0]) {
-          fieldErrors[err.path[0] as string] = err.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    setErrors({});
-    loginMutation.mutate(result.data);
-  };
-
-  const handleFillDemo = () => {
-    setIdentifier("nasabah@neocentra.bank");
-    setPassword("Neocentra2026!");
-    setErrors({});
-    setErrorMessage(null);
-  };
+  const {
+    identifier,
+    password,
+    rememberMe,
+    errors,
+    errorMessage,
+    setErrorMessage,
+    loginMutation,
+    handleIdentifierChange,
+    handlePasswordChange,
+    handleToggleRememberMe,
+    handleValidationAndSubmit,
+    handleFillDemo,
+  } = useLoginForm({ onSuccess });
 
   return (
     <Card variant="elevated" className="w-full">
@@ -76,10 +41,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
         label="Email / NIK / No. Handphone"
         placeholder="nama@email.com atau 3201..."
         value={identifier}
-        onChangeText={(val) => {
-          setIdentifier(val);
-          if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: "" }));
-        }}
+        onChangeText={handleIdentifierChange}
         autoCapitalize="none"
         keyboardType="email-address"
         error={errors.identifier}
@@ -91,10 +53,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
         label="Password Akun"
         placeholder="Masukkan kata sandi akun"
         value={password}
-        onChangeText={(val) => {
-          setPassword(val);
-          if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
-        }}
+        onChangeText={handlePasswordChange}
         isPassword
         error={errors.password}
         leftIcon={Lock}
@@ -103,7 +62,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
       {/* Remember Me & Forgot Password */}
       <View className="flex-row items-center justify-between mb-5 mt-1">
         <Pressable
-          onPress={() => setRememberMe(!rememberMe)}
+          onPress={handleToggleRememberMe}
           className="flex-row items-center"
           hitSlop={8}
         >
