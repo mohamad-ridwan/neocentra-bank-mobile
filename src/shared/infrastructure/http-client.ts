@@ -50,14 +50,37 @@ class HttpClient {
       (error: AxiosError<{ message?: string; error?: string }>) => {
         let errorMessage = "Terjadi kesalahan pada server. Silakan coba beberapa saat lagi.";
 
-        if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response?.data?.error) {
-          errorMessage = error.response.data.error;
+        let errorData: any = error.response?.data;
+        if (
+          errorData instanceof ArrayBuffer ||
+          (errorData && errorData.byteLength !== undefined)
+        ) {
+          try {
+            const text = new TextDecoder().decode(new Uint8Array(errorData));
+            errorData = JSON.parse(text);
+          } catch {
+            // Biarkan jika gagal parse
+          }
+        }
+
+        if (errorData?.message) {
+          errorMessage = errorData.message;
+        } else if (errorData?.error) {
+          errorMessage = errorData.error;
         } else if (error.code === "ECONNABORTED") {
           errorMessage = "Koneksi time out. Periksa jaringan internet Anda.";
         } else if (error.message === "Network Error") {
           errorMessage = "Gagal terhubung ke server. Pastikan backend aktif.";
+        }
+
+        // 401 Unauthorized handling (token expired / invalid)
+        if (error.response?.status === 401) {
+          try {
+            const { useAuthStore } = require("@/modules/auth/application/store/useAuthStore");
+            useAuthStore.getState().logout();
+          } catch {
+            // Ignore circular require errors
+          }
         }
 
         return Promise.reject(new Error(errorMessage));

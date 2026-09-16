@@ -3,8 +3,8 @@ import {
   AuthApi,
   LoginResponse,
 } from "@/modules/auth/infrastructure/api/auth.api";
-import { LoginFormData } from "@/modules/auth/domain/schemas/login.schema";
 import { useAuthStore } from "../store/useAuthStore";
+import { RequestCustomerLoginPayload } from "../../infrastructure/mappers/user.mapper";
 
 export function useLoginMutation(options?: {
   onSuccess?: (data: LoginResponse) => void;
@@ -19,7 +19,7 @@ export function useLoginMutation(options?: {
 
   return useMutation({
     mutationKey: ["auth", "login"],
-    mutationFn: async (data: LoginFormData) => {
+    mutationFn: async (data: RequestCustomerLoginPayload) => {
       const result = await AuthApi.login(data);
       return { result, data };
     },

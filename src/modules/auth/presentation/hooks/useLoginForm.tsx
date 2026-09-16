@@ -1,94 +1,150 @@
-import { useState } from "react";
-import { loginSchema } from "@/modules/auth/domain/schemas/login.schema";
+import { useEffect, useRef } from "react";
+import { ScrollView } from "react-native";
+import { useForm, FieldErrors } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  loginSchema,
+  LoginFormData,
+} from "@/modules/auth/domain/schemas/login.schema";
 import { useLoginMutation } from "@/modules/auth/application/queries/useLoginMutation";
 import { useAuthStore } from "@/modules/auth/application/store/useAuthStore";
+import { HybridCryptoService } from "@/shared/security/hybridCryptoService";
+import UseToast from "@/shared/hooks/UseToast";
+import useScreenCapture from "@/shared/hooks/useScreenCapture";
+import Reactotron from "reactotron-react-native";
 
 export interface UseLoginFormProps {
+  scrollRef?: React.RefObject<ScrollView | null>;
   onSuccess?: () => void;
 }
 
-export function useLoginForm({ onSuccess }: UseLoginFormProps = {}) {
-  const rememberedIdentifier = useAuthStore((state) => state.rememberedIdentifier);
+const FIELD_ORDER: (keyof LoginFormData)[] = ["identifier", "password"];
 
-  const [identifier, setIdentifier] = useState(rememberedIdentifier || "nasabah@neocentra.bank");
-  const [password, setPassword] = useState("Password123#");
-  const [rememberMe, setRememberMe] = useState(true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+export function useLoginForm({
+  scrollRef,
+  onSuccess,
+}: UseLoginFormProps = {}) {
+  useScreenCapture();
+
+  const { handleToast } = UseToast();
+  const rememberedIdentifier = useAuthStore(
+    (state) => state.rememberedIdentifier,
+  );
+
+  const inputRefs = useRef<Record<string, any>>({});
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    formState: { errors, isDirty, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      identifier: rememberedIdentifier || "",
+      password: "",
+      rememberMe: true,
+    },
+    mode: "onBlur",
+  });
+
+  const allValues = watch();
+
+  useEffect(() => {
+    if (__DEV__) {
+      Reactotron.display({
+        name: "React Hook Form (Login)",
+        preview: "Login Form Values & State Update",
+        value: {
+          values: allValues,
+          errors: errors,
+          isDirty: isDirty,
+          isSubmitting: isSubmitting,
+        },
+      });
+    }
+  }, [allValues, errors, isDirty, isSubmitting]);
 
   const loginMutation = useLoginMutation({
     onSuccess: () => {
-      setErrorMessage(null);
       onSuccess?.();
     },
     onError: (err) => {
-      setErrorMessage(err.message || "Gagal masuk. Periksa kembali data akun Anda.");
+      handleToast({
+        message: err.message || "Gagal masuk. Periksa kembali data akun Anda.",
+        title: "Login Gagal",
+        type: "error",
+      });
     },
   });
 
-  const handleIdentifierChange = (val: string) => {
-    setIdentifier(val);
-    if (errors.identifier) {
-      setErrors((prev) => ({ ...prev, identifier: "" }));
-    }
-  };
-
-  const handlePasswordChange = (val: string) => {
-    setPassword(val);
-    if (errors.password) {
-      setErrors((prev) => ({ ...prev, password: "" }));
-    }
-  };
-
-  const handleToggleRememberMe = () => {
-    setRememberMe((prev) => !prev);
-  };
-
-  const handleValidationAndSubmit = () => {
-    setErrorMessage(null);
-    const result = loginSchema.safeParse({
-      identifier: identifier.trim(),
-      password: password.trim(),
-      rememberMe,
+  const onSubmit = (data: LoginFormData) => {
+    const loginJSON = JSON.stringify({
+      identifier: data.identifier.trim(),
+      password: data.password.trim(),
     });
 
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((err) => {
-        if (err.path[0]) {
-          fieldErrors[err.path[0] as string] = err.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return;
-    }
+    const hybridPayload =
+      HybridCryptoService.encryptPayloadWithKey(loginJSON);
 
-    setErrors({});
-    loginMutation.mutate(result.data);
+    loginMutation.mutate({
+      ...hybridPayload,
+      identifier: data.identifier.trim(),
+      rememberMe: !!data.rememberMe,
+    });
+  };
+
+  const onError = (formErrors: FieldErrors<LoginFormData>) => {
+    const firstError = FIELD_ORDER.find((field) => formErrors[field]);
+    if (!firstError) return;
+
+    const targetElement = inputRefs.current[firstError];
+    if (targetElement) {
+      targetElement.focus?.();
+
+      if (scrollRef?.current && targetElement.measureLayout) {
+        targetElement.measureLayout(
+          scrollRef.current,
+          (_x: number, y: number) => {
+            scrollRef.current?.scrollTo({
+              y: Math.max(0, y - 24),
+              animated: true,
+            });
+          },
+          () => {},
+        );
+      }
+    }
   };
 
   const handleFillDemo = () => {
-    setIdentifier("nasabah@neocentra.bank");
-    setPassword("Neocentra2026!");
-    setErrors({});
-    setErrorMessage(null);
+    reset({
+      identifier: "nasabah@neocentra.bank",
+      password: "Password123#",
+      rememberMe: true,
+    });
+  };
+
+  const handlePasteBlocked = () => {
+    handleToast({
+      message:
+        "Demi keamanan perbankan, pengisian data dari papan klip (paste) tidak diperbolehkan.",
+      title: "Keamanan Perbankan",
+      type: "warning",
+    });
   };
 
   return {
-    identifier,
-    setIdentifier,
-    password,
-    setPassword,
-    rememberMe,
-    setRememberMe,
+    control,
     errors,
-    errorMessage,
-    setErrorMessage,
-    loginMutation,
-    handleIdentifierChange,
-    handlePasswordChange,
-    handleToggleRememberMe,
-    handleValidationAndSubmit,
+    inputRefs,
+    isPending: loginMutation.isPending,
+    handleSubmit: handleSubmit(onSubmit, onError),
     handleFillDemo,
+    handlePasteBlocked,
+    watch,
+    setValue,
   };
 }

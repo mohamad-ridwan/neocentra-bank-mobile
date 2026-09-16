@@ -68,7 +68,7 @@ export function RegisterScreen() {
 
         {/* Registration Form View */}
         <AuthHeader
-          title="Buka Rekening Baru"
+          title="Pendaftaran Akun"
           subtitle="Lengkapi data identitas resmi sesuai e-KTP untuk memulai perbankan digital Neocentra."
           badgeText="Proses Online Cepat & Aman"
         />

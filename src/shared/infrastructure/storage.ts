@@ -61,3 +61,81 @@ export const mmkvStorage: StateStorage = {
 };
 
 export const getMMKVInstance = () => mmkvInstance;
+
+const ACCESS_TOKEN_KEY = "neocentra_secure_access_token";
+const TOKEN_EXPIRY_KEY = "neocentra_secure_token_expiry";
+
+function getRawItem(key: string): string | null {
+  if (mmkvInstance) {
+    return mmkvInstance.getString(key) ?? null;
+  }
+  if (typeof localStorage !== "undefined") {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      // ignore
+    }
+  }
+  return memoryStorage.get(key) ?? null;
+}
+
+function setRawItem(key: string, value: string) {
+  if (mmkvInstance) {
+    mmkvInstance.set(key, value);
+    return;
+  }
+  if (typeof localStorage !== "undefined") {
+    try {
+      localStorage.setItem(key, value);
+      return;
+    } catch {
+      // ignore
+    }
+  }
+  memoryStorage.set(key, value);
+}
+
+function removeRawItem(key: string) {
+  if (mmkvInstance) {
+    mmkvInstance.remove(key);
+    return;
+  }
+  if (typeof localStorage !== "undefined") {
+    try {
+      localStorage.removeItem(key);
+      return;
+    } catch {
+      // ignore
+    }
+  }
+  memoryStorage.delete(key);
+}
+
+export const secureTokenStorage = {
+  saveAccessToken: (token: string, expiresInMinutes: number = 15) => {
+    const expiresAt = Date.now() + expiresInMinutes * 60 * 1000;
+    setRawItem(ACCESS_TOKEN_KEY, token);
+    setRawItem(TOKEN_EXPIRY_KEY, expiresAt.toString());
+  },
+  getAccessToken: (): string | null => {
+    const expiryStr = getRawItem(TOKEN_EXPIRY_KEY);
+    if (expiryStr) {
+      const expiresAt = parseInt(expiryStr, 10);
+      if (Date.now() >= expiresAt) {
+        secureTokenStorage.clearAccessToken();
+        return null;
+      }
+    }
+    return getRawItem(ACCESS_TOKEN_KEY);
+  },
+  isTokenExpired: (): boolean => {
+    const expiryStr = getRawItem(TOKEN_EXPIRY_KEY);
+    if (!expiryStr) return true;
+    const expiresAt = parseInt(expiryStr, 10);
+    return Date.now() >= expiresAt;
+  },
+  clearAccessToken: () => {
+    removeRawItem(ACCESS_TOKEN_KEY);
+    removeRawItem(TOKEN_EXPIRY_KEY);
+  },
+};

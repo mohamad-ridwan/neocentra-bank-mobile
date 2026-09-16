@@ -158,4 +158,75 @@ export class HybridCryptoService {
 
     return decrypted.toString("utf8");
   }
+
+  /**
+   * Mendekripsi respons server envelope menggunakan Kunci Publik RSA Server (@.env:L4)
+   * Wire format: [ 256B RSA-Priv-Encrypted AES Key ] + [ 12B IV ] + [ Ciphertext ] + [ 16B Tag ]
+   */
+  public static decryptServerEnvelope(data: string | Uint8Array): string {
+    if (!data || data.length === 0) {
+      return "";
+    }
+
+    const buffer =
+      typeof data === "string"
+        ? Buffer.from(data, "base64")
+        : Buffer.from(data);
+
+    const minSize =
+      HYBRID_CONSTANTS.RSA_ENCRYPTED_KEY_LENGTH +
+      HYBRID_CONSTANTS.GCM_NONCE_LENGTH +
+      HYBRID_CONSTANTS.GCM_TAG_LENGTH;
+
+    if (buffer.length < minSize) {
+      throw new Error(
+        `SECURITY_ERROR: Server envelope payload is too short (got ${buffer.length}, min ${minSize})`,
+      );
+    }
+
+    const pubKeyPEM = getServerPublicKey();
+
+    // 1. Ekstrak 256-byte encrypted session key
+    const encryptedKey = buffer.subarray(
+      0,
+      HYBRID_CONSTANTS.RSA_ENCRYPTED_KEY_LENGTH,
+    );
+
+    // 2. Dekripsi session key menggunakan RSA Public Key (.env:L4)
+    const sessionKey = crypto.publicDecrypt(
+      {
+        key: pubKeyPEM,
+        padding: crypto.constants.RSA_PKCS1_PADDING,
+      },
+      encryptedKey,
+    );
+
+    // 3. Ekstrak IV, Tag, dan Ciphertext
+    const remaining = buffer.subarray(
+      HYBRID_CONSTANTS.RSA_ENCRYPTED_KEY_LENGTH,
+    );
+    const iv = Buffer.from(
+      remaining.subarray(0, HYBRID_CONSTANTS.GCM_NONCE_LENGTH),
+    );
+    const authTag = Buffer.from(
+      remaining.subarray(remaining.length - HYBRID_CONSTANTS.GCM_TAG_LENGTH),
+    );
+    const ciphertext = Buffer.from(
+      remaining.subarray(
+        HYBRID_CONSTANTS.GCM_NONCE_LENGTH,
+        remaining.length - HYBRID_CONSTANTS.GCM_TAG_LENGTH,
+      ),
+    );
+
+    // 4. Dekripsi AES-256-GCM
+    const decipher = crypto.createDecipheriv("aes-256-gcm", sessionKey, iv);
+    decipher.setAuthTag(authTag);
+
+    const decrypted = Buffer.concat([
+      decipher.update(ciphertext),
+      decipher.final(),
+    ]);
+
+    return decrypted.toString("utf8");
+  }
 }

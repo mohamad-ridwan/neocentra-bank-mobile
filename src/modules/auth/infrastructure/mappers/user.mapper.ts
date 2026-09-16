@@ -34,6 +34,17 @@ export type RequestCustomerRegisterBinary =
   | Uint8Array<ArrayBufferLike>
   | RequestCustomerRegisterPayload;
 
+export interface RequestCustomerLoginPayload {
+  binaryPayload: Uint8Array;
+  sessionKey: Uint8Array;
+  identifier: string;
+  rememberMe?: boolean;
+}
+
+export type RequestCustomerLoginBinary =
+  | Uint8Array<ArrayBufferLike>
+  | RequestCustomerLoginPayload;
+
 export interface DecryptedRegisterPayload {
   nik: string;
   fullName: string;

@@ -8,10 +8,12 @@ import {
 } from "../../security/requestSigner";
 import {
   BackendCustomerDTO,
+  RequestCustomerLoginPayload,
   RequestCustomerRegisterBinary,
   RequestCustomerRegisterPayload,
   UserMapper,
 } from "../mappers/user.mapper";
+import { HybridCryptoService } from "@/shared/security/hybridCryptoService";
 
 export interface LoginResponse {
   user: User;
@@ -37,80 +39,81 @@ export interface VerifyCustomerResponse {
 
 export class AuthApi {
   /**
-   * Logs in an existing customer
+   * Logs in an existing customer via binary transit payload (Hybrid RSA-OAEP + AES-GCM)
    */
-  public static async login(data: LoginFormData): Promise<LoginResponse> {
-    try {
-      const response = await api.post<{
-        success: boolean;
-        message?: string;
-        token?: string;
-        access_token?: string;
-        data?: {
-          user?: BackendCustomerDTO;
-          token?: string;
-        };
-      }>("/api/v1/auth/login", {
-        identifier: data.identifier,
-        password: data.password,
-      });
+  public static async login(
+    data: RequestCustomerLoginPayload,
+  ): Promise<LoginResponse> {
+    const timestamp = new Date().toISOString();
+    const nonce = Math.random().toString(36).substring(2, 18);
+    const idempotencyKey = generateIdempotencyKey();
+    const correlationId =
+      "corr_" + Math.random().toString(36).substring(2, 10);
+    const deviceMeta = getDeviceSecurityMetadata();
 
-      const resData = response.data.data;
-      const token =
-        response.data.token ||
-        response.data.access_token ||
-        resData?.token ||
-        "mock_jwt_token_neocentra_2026";
+    const signature = generateRequestSignature(
+      "POST",
+      "/api/v1/customers/login",
+      data.binaryPayload,
+      timestamp,
+      nonce,
+    );
 
-      const rawUser = resData?.user || {
-        id: "cust_demo_01",
-        nik: "3201010101990001",
-        full_name: "Budi Santoso",
-        email: data.identifier.includes("@")
-          ? data.identifier
-          : "budi.santoso@neocentra.bank",
-        phone_number: "+6281298765432",
-        status: "ACTIVE",
-        balance: 24500000,
-        account_number: "8801 2345 6789",
-        created_at: new Date().toISOString(),
-      };
+    const response = await api.post(
+      "/api/v1/customers/login",
+      data.binaryPayload,
+      {
+        responseType: "arraybuffer",
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "Accept": "application/octet-stream",
+          "X-Signature": signature,
+          "X-Timestamp": timestamp,
+          "X-Nonce": nonce,
+          "X-Key-Id": "KMS-LOCAL-KEY-V1",
+          "X-Device-Id": deviceMeta.deviceId,
+          "X-Device-Model": deviceMeta.deviceModel,
+          "X-Device-OS": deviceMeta.deviceOS,
+          "X-App-Version": deviceMeta.appVersion,
+          "X-App-Build": deviceMeta.appBuild,
+          "X-Channel-Id": deviceMeta.channelId,
+          "X-Correlation-Id": correlationId,
+          "X-Idempotency-Key": idempotencyKey,
+          "Accept-Language": "id-ID",
+        },
+      },
+    );
 
-      const user = UserMapper.toDomain(rawUser);
+    const decryptedJsonStr = HybridCryptoService.decryptTransitResponse(
+      new Uint8Array(response.data),
+      data.sessionKey,
+    );
 
-      return {
-        user,
-        token,
-        message: response.data.message || "Login berhasil!",
-      };
-    } catch (err: any) {
-      if (
-        err.message &&
-        (err.message.includes("Network Error") ||
-          err.message.includes("Gagal terhubung"))
-      ) {
-        await new Promise((r) => setTimeout(r, 600));
-        const demoUser: User = {
-          id: "cust_demo_offline",
-          nik: "3201010101990001",
-          fullName: "Budi Santoso (Demo Offline)",
-          email: data.identifier.includes("@")
-            ? data.identifier
-            : "budi.santoso@neocentra.bank",
-          phoneNumber: "+6281298765432",
-          status: "ACTIVE",
-          balance: 15250000,
-          accountNumber: "8801 9999 8888",
-          createdAt: new Date().toISOString(),
-        };
-        return {
-          user: demoUser,
-          token: "mock_jwt_token_offline_2026",
-          message: "Mode Demo Offline: Login Berhasil",
-        };
-      }
-      throw err;
+    if (!decryptedJsonStr) {
+      throw new Error("Gagal mendekripsi respons otentikasi dari server");
     }
+
+    const payload = JSON.parse(decryptedJsonStr);
+    const token = payload.access_token || payload.token || "";
+    const rawUser: BackendCustomerDTO = {
+      customer_id: payload.customer_id,
+      nik: payload.nik,
+      full_name: payload.full_name,
+      email: payload.email,
+      phone_number: payload.phone_number,
+      status: payload.status,
+      account_number: payload.account_number,
+      balance: payload.balance,
+      created_at: payload.created_at,
+    };
+
+    const user = UserMapper.toDomain(rawUser);
+
+    return {
+      user,
+      token,
+      message: "Login berhasil!",
+    };
   }
 
   /**
@@ -127,7 +130,8 @@ export class AuthApi {
       const timestamp = new Date().toISOString();
       const nonce = Math.random().toString(36).substring(2, 18);
       const idempotencyKey = generateIdempotencyKey();
-      const correlationId = "corr_" + Math.random().toString(36).substring(2, 10);
+      const correlationId =
+        "corr_" + Math.random().toString(36).substring(2, 10);
       const deviceMeta = getDeviceSecurityMetadata();
 
       const signature = generateRequestSignature(

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { User } from "@/modules/auth/domain/entities/user.entity";
 import { httpClient } from "@/shared/infrastructure/http-client";
+import { secureTokenStorage } from "@/shared/infrastructure/storage";
 
 export interface AuthState {
   user: User | null;
@@ -13,11 +14,12 @@ export interface AuthState {
   setSession: (user: User, token: string) => void;
   setUser: (user: User) => void;
   logout: () => void;
+  checkTokenValidity: () => boolean;
   toggleBiometric: (enabled?: boolean) => void;
   setRememberedIdentifier: (identifier: string | null) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -26,6 +28,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setSession: (user, token) => {
     httpClient.setAuthToken(token);
+    secureTokenStorage.saveAccessToken(token, 15);
     set({
       user,
       token,
@@ -39,11 +42,21 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     httpClient.setAuthToken(null);
+    secureTokenStorage.clearAccessToken();
     set({
       user: null,
       token: null,
       isAuthenticated: false,
     });
+  },
+
+  checkTokenValidity: () => {
+    const expired = secureTokenStorage.isTokenExpired();
+    if (expired && get().isAuthenticated) {
+      get().logout();
+      return false;
+    }
+    return !expired;
   },
 
   toggleBiometric: (enabled) => {

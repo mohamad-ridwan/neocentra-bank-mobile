@@ -9,7 +9,13 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { ArrowLeft, Clock, Mail, RotateCw, ShieldCheck } from "lucide-react-native";
+import {
+  ArrowLeft,
+  Clock,
+  Mail,
+  RotateCw,
+  ShieldCheck,
+} from "lucide-react-native";
 import { Badge, Button, Card, Heading } from "@/shared/components/ui";
 import { AuthApi } from "@/modules/auth/infrastructure/api/auth.api";
 import { useVerificationStore } from "@/modules/auth/application/store/useVerificationStore";
@@ -81,7 +87,8 @@ export function VerificationScreen() {
     if (!session?.verificationToken) {
       handleToast({
         title: "Sesi Habis",
-        message: "Sesi verifikasi tidak ditemukan. Silakan lakukan registrasi ulang.",
+        message:
+          "Sesi verifikasi tidak ditemukan. Silakan lakukan registrasi ulang.",
         type: "error",
       });
       router.replace("/(auth)/register");
@@ -112,8 +119,7 @@ export function VerificationScreen() {
     } catch (err: any) {
       handleToast({
         title: "Verifikasi Gagal",
-        message:
-          err.message || "Kode verifikasi salah atau telah kadaluwarsa.",
+        message: err.message || "Kode verifikasi salah atau telah kadaluwarsa.",
         type: "error",
       });
     } finally {
@@ -153,9 +159,7 @@ export function VerificationScreen() {
             <Mail size={28} color="#0066FF" />
           </View>
 
-          <Heading className="text-2xl font-bold mb-2">
-            Verifikasi Akun
-          </Heading>
+          <Heading className="text-2xl font-bold mb-2">Verifikasi Akun</Heading>
           <Text className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             Masukkan 5 digit kode verifikasi yang telah kami kirimkan ke email{" "}
             <Text className="font-bold text-[#0066FF] dark:text-blue-400">
@@ -195,7 +199,7 @@ export function VerificationScreen() {
               <View className="flex-row items-center">
                 <Clock size={16} color="#64748B" className="mr-1.5" />
                 <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  Kode kedaluwarsa dalam{" "}
+                  Kirim ulang kode dalam{" "}
                   <Text className="font-bold text-amber-500">
                     {countdown} detik
                   </Text>

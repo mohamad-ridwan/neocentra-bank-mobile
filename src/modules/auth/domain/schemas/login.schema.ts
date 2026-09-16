@@ -18,7 +18,7 @@ export const loginSchema = z.object({
     .string()
     .min(1, "Password wajib diisi")
     .min(6, "Password minimal 6 karakter"),
-  rememberMe: z.boolean().optional().default(false),
+  rememberMe: z.boolean(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

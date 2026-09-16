@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +17,7 @@ import { useColorScheme } from "@/shared/hooks/useColorScheme";
 
 export function LoginScreen() {
   const router = useRouter();
+  const scrollRef = useRef<ScrollView>(null);
   const setSession = useAuthStore((state) => state.setSession);
   const { isDark } = useColorScheme();
 
@@ -49,6 +50,7 @@ export function LoginScreen() {
       className="flex-1"
     >
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         className="flex-1 px-5"
@@ -83,6 +85,7 @@ export function LoginScreen() {
 
         {/* Login Form Card */}
         <LoginForm
+          scrollRef={scrollRef}
           onSuccess={handleLoginSuccess}
           onForgotPassword={() => {
             alert(
@@ -109,11 +112,11 @@ export function LoginScreen() {
         {/* Register Navigation Footer */}
         <View className="flex-row items-center justify-center pt-2">
           <Text className="text-sm text-slate-600 dark:text-slate-400">
-            Belum memiliki rekening?{" "}
+            Belum memiliki akun?{" "}
           </Text>
           <Pressable onPress={() => router.push("/(auth)/register")}>
             <Text className="text-sm text-[#0066FF] dark:text-blue-400 font-bold">
-              Buka Rekening Baru
+              Daftar Akun
             </Text>
           </Pressable>
         </View>

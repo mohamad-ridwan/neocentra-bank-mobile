@@ -348,7 +348,7 @@ export function RegisterForm({
 
       {/* Submit Button */}
       <Button
-        title="Daftar Rekening Baru"
+        title="Daftar Akun"
         variant="primary"
         size="lg"
         isLoading={isPending}

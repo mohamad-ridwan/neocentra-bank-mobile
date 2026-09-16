@@ -1,68 +1,101 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { Controller } from "react-hook-form";
 import { Check, Lock, LogIn, Mail, Sparkles } from "lucide-react-native";
-import { Button, Card, Input, Toast } from "@/shared/components/ui";
+import { Button, Card, Input } from "@/shared/components/ui";
 import { useLoginForm } from "@/modules/auth/presentation/hooks/useLoginForm";
 
 export interface LoginFormProps {
+  scrollRef?: React.RefObject<ScrollView | null>;
   onSuccess?: () => void;
   onForgotPassword?: () => void;
 }
 
-export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
+export function LoginForm({
+  scrollRef,
+  onSuccess,
+  onForgotPassword,
+}: LoginFormProps) {
   const {
-    identifier,
-    password,
-    rememberMe,
+    control,
     errors,
-    errorMessage,
-    setErrorMessage,
-    loginMutation,
-    handleIdentifierChange,
-    handlePasswordChange,
-    handleToggleRememberMe,
-    handleValidationAndSubmit,
+    inputRefs,
+    isPending,
+    handleSubmit,
     handleFillDemo,
-  } = useLoginForm({ onSuccess });
+    handlePasteBlocked,
+    watch,
+    setValue,
+  } = useLoginForm({ scrollRef, onSuccess });
+
+  const rememberMe = watch("rememberMe");
 
   return (
     <Card variant="elevated" className="w-full">
-      {errorMessage && (
-        <Toast
-          type="error"
-          title="Login Gagal"
-          message={errorMessage}
-          onDismiss={() => setErrorMessage(null)}
-        />
-      )}
-
-      {/* Identifier Input */}
-      <Input
-        label="Email / NIK / No. Handphone"
-        placeholder="nama@email.com atau 3201..."
-        value={identifier}
-        onChangeText={handleIdentifierChange}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        error={errors.identifier}
-        leftIcon={Mail}
+      {/* 1. Identifier Input (Email / NIK / No. Handphone) */}
+      <Controller
+        control={control}
+        name="identifier"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.identifier = el;
+            }}
+            label="Email / NIK / No. Handphone"
+            placeholder="nama@email.com atau 3201..."
+            value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            error={errors.identifier?.message}
+            leftIcon={Mail}
+            autoComplete="off"
+            autoCorrect={false}
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+            secureTextEntry={false}
+            spellCheck={false}
+          />
+        )}
       />
 
-      {/* Password Input */}
-      <Input
-        label="Password Akun"
-        placeholder="Masukkan kata sandi akun"
-        value={password}
-        onChangeText={handlePasswordChange}
-        isPassword
-        error={errors.password}
-        leftIcon={Lock}
+      {/* 2. Password Input */}
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input
+            ref={(el) => {
+              inputRefs.current.password = el;
+            }}
+            label="Password Akun"
+            placeholder="Masukkan kata sandi akun"
+            value={value}
+            preventPaste={true}
+            onPasteBlocked={handlePasteBlocked}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            isPassword
+            error={errors.password?.message}
+            leftIcon={Lock}
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            contextMenuHidden={true}
+            selectTextOnFocus={false}
+          />
+        )}
       />
 
       {/* Remember Me & Forgot Password */}
       <View className="flex-row items-center justify-between mb-5 mt-1">
         <Pressable
-          onPress={handleToggleRememberMe}
+          onPress={() => setValue("rememberMe", !rememberMe)}
           className="flex-row items-center"
           hitSlop={8}
         >
@@ -89,11 +122,11 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
 
       {/* Submit Button */}
       <Button
-        title="Masuk ke Rekening"
+        title="Masuk Akun"
         variant="primary"
         size="lg"
-        isLoading={loginMutation.isPending}
-        onPress={handleValidationAndSubmit}
+        isLoading={isPending}
+        onPress={handleSubmit}
         leftIcon={LogIn}
         className="w-full mb-3"
       />
