@@ -1,9 +1,12 @@
 import React from "react";
 import { View, Text } from "react-native";
+import { useRouter } from "expo-router";
 import { CreditCard, Sparkles, ShieldCheck } from "lucide-react-native";
 import { Card, Button, Badge } from "@/shared/components/ui";
 
 export const OpenAccountCard: React.FC = () => {
+  const router = useRouter();
+
   return (
     <Card className="w-full bg-gradient-to-br from-blue-900 via-slate-900 to-slate-950 border border-blue-500/30 p-6 rounded-3xl mb-6 shadow-xl">
       <View className="flex-row justify-between items-center mb-3">
@@ -43,7 +46,7 @@ export const OpenAccountCard: React.FC = () => {
         variant="primary"
         size="md"
         onPress={() => {
-          // Placeholder action as per requirement (do not implement actual feature)
+          router.push("/account/open-account");
         }}
         className="w-full bg-[#0066FF]"
       />
