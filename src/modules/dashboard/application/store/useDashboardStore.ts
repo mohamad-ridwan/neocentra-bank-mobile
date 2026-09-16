@@ -20,6 +20,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     set({ accounts, activeAccount: active });
   },
   setActiveAccount: (activeAccount) => set({ activeAccount }),
-  setIsLoadingAccounts: (isLoadingAccounts) => set({ isLoadingAccounts }),
+  setIsLoadingAccounts: (isLoadingAccounts) =>
+    set((state) => (state.isLoadingAccounts === isLoadingAccounts ? state : { isLoadingAccounts })),
   resetDashboard: () => set({ accounts: [], activeAccount: null, isLoadingAccounts: false }),
 }));
